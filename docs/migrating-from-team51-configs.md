@@ -21,6 +21,20 @@ Update the existing `repositories` VCS entry, or add one, to point at `https://g
 
 Use the tag selected for the migration rather than `trunk`.
 
+The shared ruleset runs PHPCompatibilityWP, but this package deliberately does not pin the PHPCompatibility packages: Composer honors stability flags only in the root package, so the pre-release majors that sniff current PHP syntax can only be selected by the consumer. Require them alongside the package:
+
+```json
+{
+  "require-dev": {
+    "phpcompatibility/phpcompatibility-wp": "^3@alpha",
+    "phpcompatibility/php-compatibility": "^10@alpha",
+    "phpcompatibility/phpcompatibility-paragonie": "^2@alpha"
+  }
+}
+```
+
+Without these root-side requirements, Composer resolves the stable releases, whose sniffs do not cover current PHP syntax — `testVersion`-based checks then pass vacuously.
+
 ## Ruleset paths
 
 Point the consumer's PHPCS ruleset at:
