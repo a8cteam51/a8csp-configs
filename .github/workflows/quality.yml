@@ -58,7 +58,11 @@ jobs:
         shell: bash
         run: |
           set -e -o pipefail
-          vendor/bin/phpcs -v --standard=php/quality-assurance/phpcs.dist.xml tests/fixtures/plugin-stub | tee phpcs-scan.log
+          # phpcs.dist.xml excludes */tests/*, so a temp copy is scanned outside that path — the
+          # dedicated companion ruleset (phpcs.tests.dist.xml) is what lints tests/ itself.
+          cp -R tests/fixtures/plugin-stub "$RUNNER_TEMP/plugin-stub"
+          rm -f "$RUNNER_TEMP/plugin-stub/vendor"
+          vendor/bin/phpcs -v --standard=php/quality-assurance/phpcs.dist.xml "$RUNNER_TEMP/plugin-stub" | tee phpcs-scan.log
           # The ruleset's own exclude-patterns can silently empty the file list, and an empty scan proves nothing.
           ! grep -qF '(0 files in queue)' phpcs-scan.log
 
