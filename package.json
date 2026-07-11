@@ -21,12 +21,17 @@
   "exports": {
     "./node/eslint.config.base.mjs": "./node/eslint.config.base.mjs",
     "./node/stylelint.config.base.js": "./node/stylelint.config.base.js",
+    "./node/postcss.config.base.js": "./node/postcss.config.base.js",
     "./node/playwright.config.base.js": "./node/playwright.config.base.js",
     "./node/tsconfig.base.json": "./node/tsconfig.base.json",
     "./package.json": "./package.json"
   },
   "peerDependencies": {
     "@playwright/test": "^1.61.1",
-    "@wordpress/scripts": ">=32"
+    "@wordpress/scripts": ">=32",
+    "@wordpress/eslint-plugin": "^25.6.0",
+    "@wordpress/stylelint-config": "^23.42.0",
+    "@wordpress/postcss-plugins-preset": "^5.50.0",
+    "@csstools/postcss-sass": "^5.0.1"
   }
 }

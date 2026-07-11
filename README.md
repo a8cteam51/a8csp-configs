@@ -1,6 +1,6 @@
 # a8csp-configs
 
-`a8csp-configs` provides three shared PHP quality-assurance configs under `php/`, four Node.js tool base configs under `node/`, and nine reusable GitHub Actions workflows for A8C Special Projects repositories.
+`a8csp-configs` provides three shared PHP quality-assurance configs under `php/`, five Node.js tool base configs under `node/`, and nine reusable GitHub Actions workflows for A8C Special Projects repositories.
 
 ## `php/` configs
 
@@ -63,6 +63,7 @@ The `package.json` exports map exposes these paths:
 | --- | --- | --- |
 | `@a8csp/configs/node/eslint.config.base.mjs` | `node/eslint.config.base.mjs` | Flat ESLint baseline using the WordPress recommended, unit-test, and Playwright configurations. |
 | `@a8csp/configs/node/stylelint.config.base.js` | `node/stylelint.config.base.js` | Stylelint baseline extending the WordPress SCSS config and defining shared ignored files. |
+| `@a8csp/configs/node/postcss.config.base.js` | `node/postcss.config.base.js` | PostCSS baseline wiring the WordPress plugin preset (and Sass parsing) for CSS/SCSS builds. |
 | `@a8csp/configs/node/playwright.config.base.js` | `node/playwright.config.base.js` | Playwright baseline extending the WordPress Scripts config and using `tests/EndToEnd` as the test directory. |
 | `@a8csp/configs/node/tsconfig.base.json` | `node/tsconfig.base.json` | TypeScript baseline for JSX, isolated modules, JSON modules, control-flow checks, and no-emit type checking. |
 
