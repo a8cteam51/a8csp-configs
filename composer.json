@@ -33,7 +33,13 @@
     "roave/security-advisories": "dev-latest"
   },
   "require-dev": {
-    "composer/composer": "^2"
+    "composer/composer": "^2",
+    "phpunit/phpunit": "^13"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "A8C\\SpecialProjects\\Configs\\Tests\\": "tests/"
+    }
   },
 
   "scripts": {
@@ -41,7 +47,12 @@
     "packages-update": [
       "@composer clear-cache",
       "@composer update --prefer-stable --ignore-platform-reqs --no-interaction"
-    ]
+    ],
+    "test": [
+      "@test:unit"
+    ],
+    "test:unit": "@php vendor/bin/phpunit --testsuite=Unit",
+    "test:unit:mutation": "@php vendor/bin/infection --threads=max --show-mutations=0"
   },
   "config": {
     "allow-plugins": {
