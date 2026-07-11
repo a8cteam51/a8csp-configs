@@ -44,7 +44,7 @@ includes:
     - vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
 ```
 
-The shared PHPStan config includes `phpstan.dist.neon.php` automatically.
+The shared PHPStan config includes `phpstan.dist.neon.php` automatically. The consumer declares `parameters.paths` for its plugin entry file (and any source directory outside the conventional set) and `WPCompat.pluginFile` — or `requiresAtLeast` — explicitly in its own config; the shared configuration contributes the analysis rules, WordPress stubs, scoped-dependency scanning, and detection of conventional root files and source directories.
 
 ## `node/` configs
 
