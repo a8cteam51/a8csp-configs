@@ -2,6 +2,9 @@
 <ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../vendor/squizlabs/php_codesniffer/phpcs.xsd">
 	<!-- What NOT to scan. -->
 	<exclude-pattern>*/bin/*</exclude-pattern>
+	<!-- Test code is linted against a dedicated companion profile (phpcs.tests.dist.xml) — a
+	     distinct profile natively expresses per-context rules and property values, which a
+	     per-sniff scoped exclude-pattern cannot. -->
 	<exclude-pattern>*/tests/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 	<exclude-pattern>*/node_modules/*</exclude-pattern>

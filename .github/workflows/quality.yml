@@ -58,10 +58,7 @@ jobs:
         shell: bash
         run: |
           set -e -o pipefail
-          # The ruleset's global */tests/* exclude prevents an in-place scan; a temp copy exercises it like a consumer tree.
-          cp -R tests/fixtures/plugin-stub "$RUNNER_TEMP/plugin-stub"
-          rm -f "$RUNNER_TEMP/plugin-stub/vendor"
-          vendor/bin/phpcs -v --standard=php/quality-assurance/phpcs.dist.xml "$RUNNER_TEMP/plugin-stub" | tee phpcs-scan.log
+          vendor/bin/phpcs -v --standard=php/quality-assurance/phpcs.dist.xml tests/fixtures/plugin-stub | tee phpcs-scan.log
           # The ruleset's own exclude-patterns can silently empty the file list, and an empty scan proves nothing.
           ! grep -qF '(0 files in queue)' phpcs-scan.log
 
@@ -86,9 +83,9 @@ jobs:
       - name: Install dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
 
-      # phpstan.dist.neon includes phpstan.dist.neon.php, which discovers paths and the
-      # plugin file via getcwd() and resolves bootstrapFiles via %currentWorkingDirectory%.
-      # Both must resolve from inside the fixture, so this step (not the repo root) is cwd.
+      # phpstan.dist.neon includes phpstan.dist.neon.php, which discovers paths via getcwd()
+      # and resolves bootstrapFiles via %currentWorkingDirectory%. Both must resolve from
+      # inside the fixture, so this step (not the repo root) is cwd.
       # tests/fixtures/plugin-stub/vendor is a symlink back to the package's own vendor/,
       # so the WordPress stubs bootstrap file resolves without a second composer install.
       - name: Analyse fixture with php/quality-assurance/phpstan.dist.neon

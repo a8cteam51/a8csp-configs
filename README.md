@@ -1,6 +1,6 @@
 # a8csp-configs
 
-`a8csp-configs` provides three shared PHP quality-assurance configs under `php/`, five Node.js tool base configs under `node/`, and nine reusable GitHub Actions workflows for A8C Special Projects repositories.
+`a8csp-configs` provides four shared PHP quality-assurance configs under `php/`, five Node.js tool base configs under `node/`, and nine reusable GitHub Actions workflows for A8C Special Projects repositories.
 
 ## `php/` configs
 
@@ -9,8 +9,9 @@ The PHP quality-assurance configs live in `php/quality-assurance/`:
 | File | Purpose |
 | --- | --- |
 | `phpcs.dist.xml` | Defines the PHPCompatibilityWP, WordPress-Extra, and WordPress-Docs rules, supported-version checks, scan exclusions, and project-wide PHPCS settings. |
+| `phpcs.tests.dist.xml` | Companion ruleset for `tests/`: a distinct rule profile for test code, referenced by a consumer's own tests-only ruleset the same way `phpcs.dist.xml` is referenced by its main ruleset. |
 | `phpstan.dist.neon` | Defines the PHPStan level, WordPress stubs, shared type aliases, and strict-rule settings. |
-| `phpstan.dist.neon.php` | Discovers conventional plugin entry points and source directories, adds scoped dependencies for scanning, and configures the plugin file for WPCompat when present. |
+| `phpstan.dist.neon.php` | Discovers conventional plugin entry points and source directories, and adds scoped dependencies for scanning. |
 
 The package is not published on Packagist; it resolves from its GitHub repository through the `repositories` entry.
 
@@ -71,7 +72,7 @@ Import or require the JavaScript configs by their export paths, and use the Type
 
 ## Reusable workflows
 
-The nine reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, script and style linting, supply-chain audits, and workflow checks. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note.
+The nine reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, script and style linting, supply-chain audits, and workflow checks. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
 
 A caller references a workflow from its own workflow file and pins the reference to a tag:
 
