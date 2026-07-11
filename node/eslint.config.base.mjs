@@ -1,6 +1,6 @@
 /**
  * Shared flat ESLint baseline for WordPress projects; append project overrides after this array.
- * Ignores cover dependencies and build output only — consumer source under assets/** is linted.
+ * Ignores cover dependencies and build output.
  */
 
 import wordpress from '@wordpress/eslint-plugin';
