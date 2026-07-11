@@ -2,11 +2,11 @@
  * Re-export this base directly as the consumer's postcss.config.js.
  */
 
-const postcssPlugins = require( '@wordpress/postcss-plugins-preset' );
+const postcssPlugins = require('@wordpress/postcss-plugins-preset');
 
-module.exports = ( ctx ) => {
-	const isDevelopment = ( 'development' === ctx.env );
-	const isSass = ( '.scss' === ctx.file.extname );
+module.exports = (ctx) => {
+	const isDevelopment = 'development' === ctx.env;
+	const isSass = '.scss' === ctx.file.extname;
 
 	return {
 		map: {
@@ -15,7 +15,7 @@ module.exports = ( ctx ) => {
 		},
 		parser: isSass ? 'postcss-scss' : false,
 		plugins: [
-			...( isSass ? [ require( '@csstools/postcss-sass' ) ] : [] ),
+			...(isSass ? [require('@csstools/postcss-sass')] : []),
 			...postcssPlugins,
 		],
 	};
