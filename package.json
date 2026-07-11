@@ -1,0 +1,32 @@
+{
+  "name": "@a8csp/configs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared baseline configurations for Node-ecosystem tooling in A8C Special Projects repositories.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/a8cteam51/a8csp-configs.git"
+  },
+  "bugs": "https://github.com/a8cteam51/a8csp-configs/issues",
+  "engines": {
+    "node": ">=26",
+    "npm": ">=11"
+  },
+  "files": [
+    "node/",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    "./node/eslint.config.base.mjs": "./node/eslint.config.base.mjs",
+    "./node/stylelint.config.base.js": "./node/stylelint.config.base.js",
+    "./node/playwright.config.base.js": "./node/playwright.config.base.js",
+    "./node/tsconfig.base.json": "./node/tsconfig.base.json",
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@wordpress/scripts": ">=32"
+  }
+}
