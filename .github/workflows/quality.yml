@@ -1,0 +1,119 @@
+name: Quality
+
+on:
+  pull_request:
+    paths:
+      - 'php/quality-assurance/**'
+      - 'node/**'
+      - 'tests/fixtures/**'
+      - 'package.json'
+      - 'composer.json'
+      - 'composer.lock'
+      - '.github/workflows/quality.yml'
+  push:
+    branches: [trunk]
+    paths:
+      - 'php/quality-assurance/**'
+      - 'node/**'
+      - 'tests/fixtures/**'
+      - 'package.json'
+      - 'composer.json'
+      - 'composer.lock'
+      - '.github/workflows/quality.yml'
+  schedule:
+    - cron: '41 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phpcs-smoke:
+    name: PHPCS dist-file smoke test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+
+      # phpcs -e loads the ruleset and lists its sniffs without scanning any file — the
+      # cheapest possible proof that the XML parses and every <rule ref> still resolves.
+      - name: Explain php/quality-assurance/phpcs.dist.xml
+        run: vendor/bin/phpcs -e --standard=php/quality-assurance/phpcs.dist.xml
+
+      - name: Scan fixture with php/quality-assurance/phpcs.dist.xml
+        shell: bash
+        run: |
+          set -e -o pipefail
+          # The ruleset's global */tests/* exclude prevents an in-place scan; a temp copy exercises it like a consumer tree.
+          cp -R tests/fixtures/plugin-stub "$RUNNER_TEMP/plugin-stub"
+          rm -f "$RUNNER_TEMP/plugin-stub/vendor"
+          vendor/bin/phpcs -v --standard=php/quality-assurance/phpcs.dist.xml "$RUNNER_TEMP/plugin-stub" | tee phpcs-scan.log
+          # The ruleset's own exclude-patterns can silently empty the file list, and an empty scan proves nothing.
+          ! grep -qF '(0 files in queue)' phpcs-scan.log
+
+  phpstan-smoke:
+    name: PHPStan dist-file smoke test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+
+      # phpstan.dist.neon includes phpstan.dist.neon.php, which discovers paths and the
+      # plugin file via getcwd() and resolves bootstrapFiles via %currentWorkingDirectory%.
+      # Both must resolve from inside the fixture, so this step (not the repo root) is cwd.
+      # tests/fixtures/plugin-stub/vendor is a symlink back to the package's own vendor/,
+      # so the WordPress stubs bootstrap file resolves without a second composer install.
+      - name: Analyse fixture with php/quality-assurance/phpstan.dist.neon
+        working-directory: tests/fixtures/plugin-stub
+        run: vendor/bin/phpstan analyse -c ../../../php/quality-assurance/phpstan.dist.neon --no-progress
+
+  node-config-smoke:
+    name: Node config smoke test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '26'
+
+      # node --check parses syntax without resolving imports, so these configs need no installed peer dependencies.
+      - name: Check JavaScript syntax
+        run: find node -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
+
+      - name: Validate TypeScript config JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('node/tsconfig.base.json', 'utf8'))"
