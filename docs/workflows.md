@@ -31,6 +31,8 @@ Runs GitHub CodeQL initialization and analysis as one matrix job per configured 
 
 An empty `languages` array fails validation instead of producing an empty successful matrix. CodeQL has no PHP analyzer, so PHP is outside this workflow; PHPStan provides static analysis for PHP.
 
+A `detect-ghas` job probes `code-scanning/alerts` before `analyze` runs. When GitHub Advanced Security is unavailable — the expected state for a private repository without the paid feature — `analyze` is skipped with an `::notice` instead of failing; a public repository always has GHAS available, so `analyze` always runs there. Detection needs only `security-events: read`, already covered by the `security-events: write` this workflow requires.
+
 ```yaml
 jobs:
   codeql:
@@ -193,6 +195,8 @@ jobs:
 Runs Actionlint and Zizmor static analysis against `.github/workflows/**`.
 
 This workflow takes no inputs. The caller must grant `contents: read`, `security-events: write`, and `actions: read`, as shown below; granting less than the called jobs declare causes the workflow call to fail at startup.
+
+The same `detect-ghas` probe selects the zizmor job's mode: actionlint and the zizmor scan always run regardless of GHAS availability. With GHAS available, zizmor uploads SARIF to the Security tab and a finding-count gate blocks CI (Advanced Security mode never fails the job itself). Without GHAS, the same pinned action runs in native mode — zizmor's own exit code fails the job on any finding, with inline annotations instead of a Security-tab entry; the threshold is identical in both modes.
 
 ```yaml
 jobs:

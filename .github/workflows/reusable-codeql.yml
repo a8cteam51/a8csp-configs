@@ -28,9 +28,70 @@ jobs:
             exit 1
           fi
 
+  detect-ghas:
+    name: Detect GHAS availability
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: read
+    outputs:
+      ghas-available: ${{ steps.detect.outputs.ghas-available }}
+    steps:
+      - name: Detect GitHub Advanced Security availability
+        id: detect
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          # code-scanning/alerts is GHAS-gated: a 200 (even an empty list) means the feature is
+          # available; a 403 naming Advanced Security is the exact failure CodeQL's own SARIF upload
+          # would hit on a private repo without the feature, so probing this surfaces it before
+          # analyze ever runs. A confirmed-absent 403 is trusted immediately. Everything else — a
+          # curl error, a transient 5xx, an unrecognized 403 body — is ambiguous and gets retried up
+          # to max_attempts times before the loop gives up.
+          #
+          # Loud over silent: a skipped analyze job counts as a passing required check, so once
+          # retries are exhausted this step resolves a still-ambiguous outcome to "available" and lets
+          # analyze run — a repo that's genuinely missing GHAS then fails visibly on SARIF upload
+          # instead of silently passing. This is the opposite default from the sibling detect-ghas step
+          # in reusable-workflow-checks.yml, where the zizmor job scans and gates either way, so
+          # guessing "unavailable" there only costs a Security-tab upload rather than an entire scan.
+          probe_body="${RUNNER_TEMP}/ghas-probe.json"
+          max_attempts=3
+          retry_sleep_seconds=5
+          attempt=1
+          while :; do
+            http_code=$(curl -s --max-time 15 -o "$probe_body" -w '%{http_code}' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${REPO}/code-scanning/alerts?per_page=1") || http_code="curl-error"
+
+            if [ "$http_code" = "200" ]; then
+              echo "ghas-available=true" >> "$GITHUB_OUTPUT"
+              break
+            fi
+
+            if [ "$http_code" = "403" ] && grep -q 'Advanced Security must be enabled' "$probe_body" 2>/dev/null; then
+              echo "::notice::GitHub Advanced Security is unavailable on this repository — CodeQL analyze is skipped."
+              echo "ghas-available=false" >> "$GITHUB_OUTPUT"
+              break
+            fi
+
+            if [ "$attempt" -lt "$max_attempts" ]; then
+              attempt=$((attempt + 1))
+              sleep "$retry_sleep_seconds"
+              continue
+            fi
+
+            echo "::warning::GHAS availability probe was ambiguous after $max_attempts attempts (last status '$http_code') — assuming GHAS is available so analyze runs; a genuine absence then fails visibly on SARIF upload instead of silently skipping as a passing required check."
+            echo "ghas-available=true" >> "$GITHUB_OUTPUT"
+            break
+          done
+
   analyze:
     name: Analyze (${{ matrix.language }})
-    needs: validate-inputs
+    needs: [validate-inputs, detect-ghas]
+    if: needs.detect-ghas.outputs.ghas-available == 'true'
     runs-on: ubuntu-latest
     permissions:
       actions: read
