@@ -43,10 +43,10 @@
   },
 
   "scripts": {
-    "packages-install": "@composer install --ignore-platform-reqs --no-interaction",
+    "packages-install": "@composer install --ignore-platform-req=php+ --no-interaction",
     "packages-update": [
       "@composer clear-cache",
-      "@composer update --prefer-stable --ignore-platform-reqs --no-interaction"
+      "@composer update --prefer-stable --ignore-platform-req=php+ --no-interaction"
     ],
     "test": [
       "@test:unit"
