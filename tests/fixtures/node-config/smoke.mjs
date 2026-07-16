@@ -72,7 +72,7 @@ probes.push( [
 		} );
 		if ( false !== scss.parser || 0 === scss.plugins.length ) {
 			throw new Error(
-				'.scss context must yield the default parser and a compiler-free plugin chain'
+				'.scss context did not yield the default parser and a non-empty plugin chain'
 			);
 		}
 		const css = factory( { env: 'production', file: { extname: '.css' } } );
