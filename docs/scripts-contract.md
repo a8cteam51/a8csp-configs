@@ -29,10 +29,13 @@ matching the default avoids an unnecessary `with:` entry.
 
 `reusable-php-lint.yml` takes a required `scripts` array of composer script names and runs each as
 its own matrix job; the workflow itself names none of them. The established convention across
-consumers is a `lint:php` composer script that aggregates `lint:php:phpcs` and `lint:php:phpstan`,
-passed as `'["lint:php:phpcs", "lint:php:phpstan"]'`.
+consumers is a `lint:php` composer script that aggregates `lint:php:phpcs`, `lint:php:phpcs:tests`,
+and `lint:php:phpstan`, passed as `'["lint:php:phpcs", "lint:php:phpcs:tests", "lint:php:phpstan"]'`.
+The `lint:php:phpcs:tests` job runs the companion tests-profile ruleset over `tests/`; a consumer
+that omits it lints production code but leaves its test code unchecked.
 
 ## Out of scope
 
-This repository ships no reusable release or changelog workflow, so no changelog script name is
-part of this contract.
+The reusable release-smoke workflow runs no consumer-defined script — it installs and activates the
+built artifact through wp-env — and this repository ships no changelog workflow, so no changelog
+script name is part of this contract.
