@@ -1,6 +1,6 @@
 # a8csp-configs
 
-`a8csp-configs` provides four shared PHP quality-assurance configs under `php/`, five Node.js tool base configs under `node/`, and nine reusable GitHub Actions workflows for A8C Special Projects repositories.
+`a8csp-configs` provides four shared PHP quality-assurance configs under `php/`, five Node.js tool base configs under `node/`, and ten reusable GitHub Actions workflows for A8C Special Projects repositories.
 
 ## `php/` configs
 
@@ -28,7 +28,7 @@ Require an immutable release tag in the consuming project's `composer.json`:
 }
 ```
 
-Reference the shared PHPCS ruleset from the consumer's `phpcs.xml.dist`:
+Reference the shared PHPCS ruleset from the consumer's `.phpcs.xml`:
 
 ```xml
 <?xml version="1.0"?>
@@ -37,7 +37,7 @@ Reference the shared PHPCS ruleset from the consumer's `phpcs.xml.dist`:
 </ruleset>
 ```
 
-Include the shared PHPStan config from the consumer's `phpstan.neon.dist`:
+Include the shared PHPStan config from the consumer's `.phpstan.neon`:
 
 ```neon
 includes:
@@ -72,7 +72,7 @@ Import or require the JavaScript configs by their export paths, and use the Type
 
 ## Reusable workflows
 
-The nine reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, script and style linting, supply-chain audits, and workflow checks. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
+The ten reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, release smoke tests, script and style linting, supply-chain audits, and workflow checks. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
 
 A caller references a workflow from its own workflow file and pins the reference to a tag:
 

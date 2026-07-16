@@ -5,6 +5,7 @@ on:
     paths:
       - 'php/quality-assurance/**'
       - 'node/**'
+      - 'eslint.config.mjs'
       - 'tests/**'
       - 'package.json'
       - 'composer.json'
@@ -17,6 +18,7 @@ on:
     paths:
       - 'php/quality-assurance/**'
       - 'node/**'
+      - 'eslint.config.mjs'
       - 'tests/**'
       - 'package.json'
       - 'composer.json'
@@ -28,6 +30,10 @@ on:
     - cron: '41 6 * * 1'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -35,6 +41,7 @@ jobs:
   phpcs-smoke:
     name: PHPCS dist-file smoke test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -43,7 +50,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
@@ -57,6 +64,10 @@ jobs:
       # cheapest possible proof that the XML parses and every <rule ref> still resolves.
       - name: Explain php/quality-assurance/phpcs.dist.xml
         run: vendor/bin/phpcs -e --standard=php/quality-assurance/phpcs.dist.xml
+
+      # The companion tests-profile ruleset ships too; -e proves it parses and every <rule ref> resolves.
+      - name: Explain php/quality-assurance/phpcs.tests.dist.xml
+        run: vendor/bin/phpcs -e --standard=php/quality-assurance/phpcs.tests.dist.xml
 
       - name: Scan fixture with php/quality-assurance/phpcs.dist.xml
         shell: bash
@@ -73,6 +84,7 @@ jobs:
   phpstan-smoke:
     name: PHPStan dist-file smoke test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -81,7 +93,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
@@ -112,6 +124,7 @@ jobs:
   lint-config:
     name: Node config smokes
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:

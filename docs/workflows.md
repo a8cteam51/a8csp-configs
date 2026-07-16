@@ -1,6 +1,6 @@
 # Reusable workflows
 
-This document is the per-workflow `workflow_call` input reference for the nine reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#reusable-workflow-inputs) freeze existing inputs; additional inputs must be optional and define a default.
+This document is the per-workflow `workflow_call` input reference for the ten reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#reusable-workflow-inputs) freeze existing inputs; additional inputs must be optional and define a default.
 
 ## block.json Schema Check — `.github/workflows/reusable-block-json-check.yml`
 
@@ -65,7 +65,7 @@ jobs:
       contents: read
     uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-lint.yml@v1.0.0
     with:
-      scripts: '["lint:php:phpcs", "lint:php:phpstan"]'
+      scripts: '["lint:php:phpcs", "lint:php:phpcs:tests", "lint:php:phpstan"]'
 ```
 
 ## PHP Syntax Check — `.github/workflows/reusable-php-syntax-check.yml`
@@ -145,6 +145,30 @@ jobs:
       artifact-slug: primary
 ```
 
+## Release Smoke Test — `.github/workflows/reusable-release-smoke.yml`
+
+Downloads a built plugin zip artifact, installs and activates it in a fresh wp-env, and fails if activation errors or the site stops serving. The release artifact differs materially from the tested tree (production dependencies, rebuilt assets, `.distignore` filtering), so it is exercised once before publishing.
+
+| Input | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `zip-artifact` | `string` | Yes | — | Name of the uploaded artifact containing the built plugin zip. |
+| `plugin-slug` | `string` | Yes | — | The plugin directory slug the zip unpacks to (`wp dist-archive --plugin-dirname`). |
+| `extra-plugins` | `string` | No | `'[]'` | JSON array of additional wp-env plugin sources (e.g. a host plugin zip URL) installed alongside the artifact. |
+| `node-version` | `string` | No | `'26'` | Node.js version for the wp-env CLI. |
+
+The caller must grant `actions: read` so the smoke job can download the build artifact. The workflow stops wp-env under `always()`.
+
+```yaml
+jobs:
+  smoke:
+    permissions:
+      actions: read
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release-smoke.yml@v1.0.0
+    with:
+      zip-artifact: release-zip
+      plugin-slug: ${{ github.event.repository.name }}
+```
+
 ## Scripts/Styles Lint — `.github/workflows/reusable-scripts-styles-lint.yml`
 
 Installs npm dependencies and conditionally runs the configured ESLint and Stylelint scripts.
@@ -194,7 +218,11 @@ jobs:
 
 Runs Actionlint and Zizmor static analysis against `.github/workflows/**`.
 
-This workflow takes no inputs. The caller must grant `contents: read`, `security-events: write`, and `actions: read`, as shown below; granting less than the called jobs declare causes the workflow call to fail at startup.
+| Input | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `zizmor-inputs` | `string` | No | `'.'` | The path zizmor audits. Narrow it for consumers that must exclude vendored third-party workflow files. |
+
+The caller must grant `contents: read`, `security-events: write`, and `actions: read`, as shown below; granting less than the called jobs declare causes the workflow call to fail at startup.
 
 The same `detect-ghas` probe selects the zizmor job's mode: actionlint and the zizmor scan always run regardless of GHAS availability. With GHAS available, zizmor uploads SARIF to the Security tab and a finding-count gate blocks CI (Advanced Security mode never fails the job itself). Without GHAS, the same pinned action runs in native mode — zizmor's own exit code fails the job on any finding, with inline annotations instead of a Security-tab entry; the threshold is identical in both modes.
 

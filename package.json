@@ -27,7 +27,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "lint:scripts": "wp-scripts lint-js ./node --no-error-on-unmatched-pattern",
+    "lint:scripts": "wp-scripts lint-js ./node tests/fixtures/node-config/smoke.mjs --no-error-on-unmatched-pattern",
     "lint:config": "node tests/fixtures/node-config/smoke.mjs"
   },
   "peerDependencies": {

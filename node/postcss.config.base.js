@@ -2,9 +2,9 @@
  * Re-export this base directly as the consumer's postcss.config.js.
  */
 
-const postcssPlugins = require('@wordpress/postcss-plugins-preset');
+const postcssPlugins = require( '@wordpress/postcss-plugins-preset' );
 
-module.exports = (ctx) => {
+module.exports = ( ctx ) => {
 	const isDevelopment = 'development' === ctx.env;
 
 	return {
@@ -13,6 +13,6 @@ module.exports = (ctx) => {
 			annotation: true,
 		},
 		parser: false,
-		plugins: [...postcssPlugins],
+		plugins: [ ...postcssPlugins ],
 	};
 };

@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a shared config or reusable workflow behaving incorrectly.
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true
+
+  - type: input
+    id: surface
+    attributes:
+      label: Config or workflow
+      description: Which shared config or reusable workflow is affected (e.g. phpcs.dist.xml, reusable-phpunit.yml).
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Pin a8csp-configs at <tag or SHA> in a consuming repo.
+        2. Run the failing script or workflow.
+        3. ...
+
+        Attach any logs by drag and dropping or selecting upload.
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to happen
+      placeholder: |
+        e.g. The shared PHPCS ruleset resolves and the lint job passes.
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+      placeholder: |
+        e.g. The reusable workflow fails at startup with a permissions error.
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: The versions the bug occurred on, plus anything unusual about the consuming repo.
+      placeholder: |
+        - a8csp-configs version (tag or SHA):
+        - Consuming repo:
+        - PHP version:
+        - Node version:
+    validations:
+      required: true
