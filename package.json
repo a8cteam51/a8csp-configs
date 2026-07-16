@@ -34,10 +34,12 @@
     "@playwright/test": "^1.61.1",
     "@wordpress/scripts": ">=32",
     "@wordpress/eslint-plugin": "^25.6.0",
-    "prettier": "npm:wp-prettier@^3.0.3",
     "@wordpress/stylelint-config": "^23.42.0",
     "@wordpress/postcss-plugins-preset": "^5.50.0",
     "@csstools/postcss-sass": "^5.0.1"
+  },
+  "dependencies": {
+    "prettier": "npm:wp-prettier@^3.0.3"
   },
   "devDependencies": {
     "@wordpress/e2e-test-utils-playwright": "^1.50.0",
