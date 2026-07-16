@@ -5,6 +5,7 @@ on:
     paths:
       - 'php/quality-assurance/**'
       - 'node/**'
+      - 'eslint.config.mjs'
       - 'tests/**'
       - 'package.json'
       - 'composer.json'
@@ -17,6 +18,7 @@ on:
     paths:
       - 'php/quality-assurance/**'
       - 'node/**'
+      - 'eslint.config.mjs'
       - 'tests/**'
       - 'package.json'
       - 'composer.json'
@@ -62,6 +64,10 @@ jobs:
       # cheapest possible proof that the XML parses and every <rule ref> still resolves.
       - name: Explain php/quality-assurance/phpcs.dist.xml
         run: vendor/bin/phpcs -e --standard=php/quality-assurance/phpcs.dist.xml
+
+      # The companion tests-profile ruleset ships too; -e proves it parses and every <rule ref> resolves.
+      - name: Explain php/quality-assurance/phpcs.tests.dist.xml
+        run: vendor/bin/phpcs -e --standard=php/quality-assurance/phpcs.tests.dist.xml
 
       - name: Scan fixture with php/quality-assurance/phpcs.dist.xml
         shell: bash

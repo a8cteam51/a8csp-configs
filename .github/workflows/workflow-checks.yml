@@ -29,9 +29,10 @@ jobs:
       actions: read
     uses: ./.github/workflows/reusable-workflow-checks.yml
 
-  # The WP_ENV_VERSION pins in reusable-phpunit.yml and reusable-playwright-e2e.yml must stay
-  # identical — npx-inline @wordpress/env versions are invisible to dependabot, so nothing bumps
-  # them together automatically. This job fails when the two pins drift.
+  # The WP_ENV_VERSION pins in reusable-phpunit.yml, reusable-playwright-e2e.yml, and
+  # reusable-release-smoke.yml must stay identical — npx-inline @wordpress/env versions are
+  # invisible to dependabot, so nothing bumps them together automatically. This job fails when
+  # any of the three pins drift.
   wp-env-version-sync:
     name: wp-env version pins in sync
     runs-on: ubuntu-latest
@@ -51,12 +52,13 @@ jobs:
           }
           phpunit=$(extract .github/workflows/reusable-phpunit.yml)
           playwright=$(extract .github/workflows/reusable-playwright-e2e.yml)
-          if [ -z "$phpunit" ] || [ -z "$playwright" ]; then
-            echo "::error::could not extract a WP_ENV_VERSION pin (phpunit='$phpunit', playwright='$playwright') — the env line moved or changed quoting."
+          release_smoke=$(extract .github/workflows/reusable-release-smoke.yml)
+          if [ -z "$phpunit" ] || [ -z "$playwright" ] || [ -z "$release_smoke" ]; then
+            echo "::error::could not extract a WP_ENV_VERSION pin (phpunit='$phpunit', playwright='$playwright', release-smoke='$release_smoke') — the env line moved or changed quoting."
             exit 1
           fi
-          if [ "$phpunit" != "$playwright" ]; then
-            echo "::error::WP_ENV_VERSION pins differ: reusable-phpunit.yml has '$phpunit' but reusable-playwright-e2e.yml has '$playwright' — they must stay identical."
+          if [ "$phpunit" != "$playwright" ] || [ "$phpunit" != "$release_smoke" ]; then
+            echo "::error::WP_ENV_VERSION pins differ: reusable-phpunit.yml has '$phpunit', reusable-playwright-e2e.yml has '$playwright', reusable-release-smoke.yml has '$release_smoke' — they must stay identical."
             exit 1
           fi
           echo "WP_ENV_VERSION pins match: $phpunit"
