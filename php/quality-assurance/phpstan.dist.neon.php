@@ -9,7 +9,7 @@ foreach ( array( 'dependencies' ) as $discoverDirectory ) {
 	}
 }
 
-foreach ( array( 'functions-bootstrap.php', 'functions.php' ) as $analyzeFile ) {
+foreach ( array( 'functions-bootstrap.php', 'functions.php', 'uninstall.php' ) as $analyzeFile ) {
 	if ( is_file( $workingDirectory . '/' . $analyzeFile ) ) {
 		$config['parameters']['paths'][] = $workingDirectory . '/' . $analyzeFile;
 	}
