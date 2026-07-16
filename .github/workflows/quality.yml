@@ -28,6 +28,10 @@ on:
     - cron: '41 6 * * 1'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -35,6 +39,7 @@ jobs:
   phpcs-smoke:
     name: PHPCS dist-file smoke test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -43,7 +48,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
@@ -73,6 +78,7 @@ jobs:
   phpstan-smoke:
     name: PHPStan dist-file smoke test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -81,7 +87,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
@@ -112,6 +118,7 @@ jobs:
   lint-config:
     name: Node config smokes
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
