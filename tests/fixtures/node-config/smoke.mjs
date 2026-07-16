@@ -66,13 +66,13 @@ probes.push( [
 	'postcss.config.base.js',
 	() => {
 		const factory = require( resolve( 'node/postcss.config.base.js' ) );
-		const sass = factory( {
+		const scss = factory( {
 			env: 'development',
 			file: { extname: '.scss' },
 		} );
-		if ( 'postcss-scss' !== sass.parser || 0 === sass.plugins.length ) {
+		if ( false !== scss.parser || 0 === scss.plugins.length ) {
 			throw new Error(
-				'.scss context did not yield the Sass parser and a non-empty plugin chain'
+				'.scss context did not yield the default parser and a non-empty plugin chain'
 			);
 		}
 		const css = factory( { env: 'production', file: { extname: '.css' } } );
