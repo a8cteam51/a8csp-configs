@@ -17,6 +17,11 @@ on:
         type: string
         required: false
         default: '[]'
+      extra-smoke-commands:
+        description: 'JSON array of wp-cli argument strings (everything after "wp") run as additional smoke assertions, e.g. ["help my-command"].'
+        type: string
+        required: false
+        default: '[]'
       node-version:
         description: 'Node.js version for wp-env CLI'
         type: string
@@ -71,6 +76,16 @@ jobs:
           npx --yes @wordpress/env@"$WP_ENV_VERSION" run cli wp plugin is-active "$PLUGIN_SLUG"
           # A boot-path fatal that survives activation surfaces on the next request.
           curl --fail --silent --show-error --output /dev/null http://localhost:8888/
+
+      - name: Run the extra smoke assertions
+        if: inputs.extra-smoke-commands != '[]'
+        env:
+          EXTRA_SMOKE_COMMANDS: ${{ inputs.extra-smoke-commands }}
+        run: |
+          # Word-splitting each entry is the contract: an entry is wp-cli arguments.
+          echo "$EXTRA_SMOKE_COMMANDS" | jq -r '.[]' | while IFS= read -r smoke_command; do
+            npx --yes @wordpress/env@"$WP_ENV_VERSION" run cli wp $smoke_command > /dev/null
+          done
 
       - name: Stop wp-env
         if: always()
