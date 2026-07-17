@@ -82,8 +82,10 @@ jobs:
         env:
           EXTRA_SMOKE_COMMANDS: ${{ inputs.extra-smoke-commands }}
         run: |
-          # Word-splitting each entry is the contract: an entry is wp-cli arguments.
+          # set -f keeps an entry from glob-expanding against workspace files; the unquoted word-split into wp-cli arguments is the intended contract.
+          set -f
           echo "$EXTRA_SMOKE_COMMANDS" | jq -r '.[]' | while IFS= read -r smoke_command; do
+            # shellcheck disable=SC2086
             npx --yes @wordpress/env@"$WP_ENV_VERSION" run cli wp $smoke_command > /dev/null
           done
 
