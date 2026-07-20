@@ -19,8 +19,6 @@ in a real runtime.
   load-smokes all five Node baselines against the installed toolchain; the block.json reusable runs
   against a schema-valid fixture, and the scripts/styles reusable runs the repo's own `lint:scripts`
   (styles disabled — the repo has no CSS sources to lint). These are workflow-level, not PHPUnit.
-- **Mutation** (`.github/workflows/tests-mutation.yml`) — Infection mutates `php/quality-assurance`
-  and enforces the MSI floors in `infection.json`, guarding the Unit suite against vacuous assertions.
 
 ## Fixtures
 

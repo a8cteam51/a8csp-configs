@@ -28,7 +28,6 @@
     "swissspidy/phpstan-no-private": "^1",
 
     "maglnet/composer-require-checker": "^4",
-    "infection/infection": "^0.34",
 
     "roave/security-advisories": "dev-latest"
   },
@@ -51,15 +50,13 @@
     "test": [
       "@test:unit"
     ],
-    "test:unit": "@php vendor/bin/phpunit --testsuite=Unit",
-    "test:unit:mutation": "@php vendor/bin/infection --threads=max --show-mutations=0"
+    "test:unit": "@php vendor/bin/phpunit --testsuite=Unit"
   },
   "config": {
     "allow-plugins": {
       "composer/*": true,
       "dealerdirect/phpcodesniffer-composer-installer": true,
-      "phpstan/extension-installer": true,
-      "infection/extension-installer": true
+      "phpstan/extension-installer": true
     }
   }
 }
