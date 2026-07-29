@@ -1,0 +1,221 @@
+name: Release
+# The release path only executes on a tag, so every defect in it is found during a release; it lives here so a fix is made once. Callers must grant the union of the permissions the jobs below declare — contents: write and actions: read — or the call fails at startup, which does not appear as a failed check.
+
+on:
+  workflow_call:
+    inputs:
+      plugin-slug:
+        description: 'Plugin directory slug. Names the archive, the POT, and the directory the zip unpacks to.'
+        type: string
+        required: true
+      php-version:
+        description: 'PHP the build and the smoke environment run. Must satisfy the plugin header "Requires PHP" or WordPress refuses to activate the artifact.'
+        type: string
+        required: true
+      entry-file:
+        description: 'Main plugin file carrying the Version header. Empty uses <plugin-slug>.php.'
+        type: string
+        required: false
+        default: ''
+      node-version:
+        description: 'Node.js version set up before the build. Empty skips Node entirely.'
+        type: string
+        required: false
+        default: ''
+      extra-plugins:
+        description: 'JSON array of additional wp-env plugin sources installed alongside the artifact during smoke.'
+        type: string
+        required: false
+        default: '[]'
+      extra-smoke-commands:
+        description: 'JSON array of wp-cli argument strings run as additional smoke assertions.'
+        type: string
+        required: false
+        default: '[]'
+      publish:
+        description: 'Whether to create the GitHub release. False runs everything up to it, which is how this path can be exercised without a tag.'
+        type: boolean
+        required: false
+        default: true
+
+permissions: {}
+
+jobs:
+  version-check:
+    name: Verify release version
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Tagging before composer changelog:write leaves the materialized release version out of sync, and the self-updater compares an installed plugin against the header rather than against the tag.
+      - name: Require the tag, plugin header, package, and changelog to agree
+        env:
+          ENTRY_FILE: ${{ inputs.entry-file }}
+          PLUGIN_SLUG: ${{ inputs.plugin-slug }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          entry_file="${ENTRY_FILE:-$PLUGIN_SLUG.php}"
+          tag_version="${TAG#v}"
+          plugin_version=$(grep -m 1 '^[[:space:]]*\*[[:space:]]*Version:' "$entry_file" | sed -E 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]*([^[:space:]]+).*/\1/' || true)
+          package_version=$(jq -r .version package.json)
+          changelog_version=$(grep -m 1 '^## ' CHANGELOG.md | sed -E 's/^## \[?([^] ]+)\]? - .*/\1/' || true)
+
+          if [ -z "$plugin_version" ] || [ -z "$package_version" ] || [ -z "$changelog_version" ] || [ "$tag_version" != "$plugin_version" ] || [ "$tag_version" != "$package_version" ] || [ "$tag_version" != "$changelog_version" ]; then
+            echo "::error::release versions disagree: tag=$tag_version plugin=${plugin_version:-missing} package=${package_version:-missing} changelog=${changelog_version:-missing}" >&2
+            exit 1
+          fi
+
+  # Releases reuse the full-matrix results proven at the exact tagged commit.
+  provenance:
+    name: Verify release provenance
+    needs: version-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+    steps:
+      - name: Verify required workflows passed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          required_workflows=(.github/workflows/quality.yml .github/workflows/tests.yml)
+          if ! successful_workflows=$(gh api --paginate --method GET \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${REPOSITORY}/actions/runs" \
+            --raw-field "head_sha=${SHA}" \
+            --raw-field status=success \
+            --field per_page=100 \
+            --jq '.workflow_runs[] | select(.event == "push" and .conclusion == "success") | .path'); then
+            echo "::error::Unable to verify workflow runs for ${SHA}; rerun the release after the Actions API is available." >&2
+            exit 1
+          fi
+
+          missing_workflows=()
+          for workflow in "${required_workflows[@]}"; do
+            if ! grep -Fqx -- "$workflow" <<<"$successful_workflows"; then
+              missing_workflows+=("$workflow")
+            fi
+          done
+
+          if (( ${#missing_workflows[@]} > 0 )); then
+            echo "::error::Missing successful workflow run(s) for ${SHA}: ${missing_workflows[*]}. The tagged SHA must be a commit whose Quality and Tests runs are green; re-tag after they pass." >&2
+            exit 1
+          fi
+
+  build:
+    name: Build the release artifact
+    needs: version-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ inputs.php-version }}
+          coverage: none
+          tools: composer:v2, wp-cli
+      - if: inputs.node-version != ''
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          # Release builds run cache-free: a runtime cache is a poisoning vector for a publishing workflow.
+          package-manager-cache: false
+      - name: Validate changelog
+        run: |
+          composer install --no-interaction
+          composer changelog:validate
+      - name: Install production dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+      # wp-cli's own package installer resolves through a composer VCS repository, so it reads the GitHub API and needs a credential composer accepts — and composer rejects some of the tokens Actions mints, which failed releases intermittently. Installing the commands from Packagist into their own directory needs no credential, and lets composer pick versions its wp-cli can actually run.
+      - name: Install the release tooling
+        run: |
+          mkdir -p "$RUNNER_TEMP/release-tools"
+          printf '%s' '{"name":"a8csp/release-tools","require":{}}' > "$RUNNER_TEMP/release-tools/composer.json"
+          composer require --no-interaction --working-dir="$RUNNER_TEMP/release-tools" \
+            wp-cli/i18n-command:2.7.0 wp-cli/dist-archive-command:3.1.0
+      # Regenerating the committed POT prevents source changes from shipping stale strings.
+      - name: Generate translation template
+        env:
+          PLUGIN_SLUG: ${{ inputs.plugin-slug }}
+        run: |
+          wp --require="$RUNNER_TEMP/release-tools/vendor/autoload.php" i18n make-pot ./ --slug="$PLUGIN_SLUG"
+          test -f "languages/$PLUGIN_SLUG.pot"
+      - name: Create plugin archive
+        env:
+          PLUGIN_SLUG: ${{ inputs.plugin-slug }}
+        run: |
+          wp --require="$RUNNER_TEMP/release-tools/vendor/autoload.php" dist-archive . "./$PLUGIN_SLUG.zip" --plugin-dirname="$PLUGIN_SLUG"
+      - name: Upload the archive for the smoke and publish jobs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-zip
+          path: ./*.zip
+          retention-days: 1
+
+  smoke:
+    name: Smoke test the artifact
+    needs: build
+    permissions:
+      actions: read
+    uses: ./.github/workflows/reusable-release-smoke.yml
+    with:
+      zip-artifact: release-zip
+      plugin-slug: ${{ inputs.plugin-slug }}
+      php-version: ${{ inputs.php-version }}
+      extra-plugins: ${{ inputs.extra-plugins }}
+      extra-smoke-commands: ${{ inputs.extra-smoke-commands }}
+
+  publish:
+    name: Publish the release
+    needs: [smoke, provenance]
+    if: inputs.publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      # Checked out for CHANGELOG.md alone; the artifact is downloaded afterwards so ./*.zip is only ever it.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download the smoke-tested archive
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-zip
+      # The release describes what changed, which the changelog already states; generated notes replace that with every merged pull request since the repository began, dependency bumps included.
+      - name: Collect the release notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '
+            $0 ~ "^## " v " " { capture = 1; next }
+            capture && /^## / { exit }
+            capture { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
+          # A version with no changelog section would otherwise ship as a release describing nothing.
+          test -s "$RUNNER_TEMP/release-notes.md"
+          cat "$RUNNER_TEMP/release-notes.md"
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The job takes only the artifact and the changelog, so gh is told which repository to release in, and hyphenated SemVer tags must stay off the stable updater's latest-release endpoint.
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            gh release create "$GITHUB_REF_NAME" ./*.zip --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --prerelease --latest=false
+          else
+            gh release create "$GITHUB_REF_NAME" ./*.zip --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md"
+          fi
