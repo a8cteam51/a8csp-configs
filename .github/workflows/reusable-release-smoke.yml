@@ -55,9 +55,7 @@ jobs:
 
       # wp-env installs and activates every listed plugin during start, so a zip whose tree
       # is broken (missing autoloader, filtered-out runtime file, activation fatal) fails here.
-      # wp-env resolves a plugin source three ways: an absolute or ./-prefixed path as a local directory, an
-      # http(s) .zip as a download, and anything else as a GitHub owner/repo. A local archive matches none of
-      # them, so the artifact is unpacked and the directory it produces is named absolutely.
+      # wp-env resolves a plugin source three ways: an absolute or ./-prefixed path as a local directory, an http(s) .zip as a download, and anything else as a GitHub owner/repo — a local archive matches none of them, so the artifact is unpacked and the directory it produces is named absolutely.
       - name: Write the smoke wp-env config
         env:
           EXTRA_PLUGINS: ${{ inputs.extra-plugins }}
@@ -75,8 +73,7 @@ jobs:
             echo "::error::The artifact does not unpack to a $PLUGIN_SLUG directory; check the --plugin-dirname the build passes to wp dist-archive."
             exit 1
           fi
-          # A declared PHP floor above wp-env's default makes WordPress refuse activation, which reads as a broken
-          # artifact rather than an environment that cannot host it.
+          # A declared PHP floor above wp-env's default makes WordPress refuse activation, which reads as a broken artifact rather than an environment that cannot host it.
           jq -n --arg plugin "$plugin_dir" --arg php "$PHP_VERSION" --argjson extra "$EXTRA_PLUGINS" \
             '{ plugins: ( $extra + [$plugin] ) } + ( if $php == "" then {} else { phpVersion: $php } end )' > .wp-env.json
           cat .wp-env.json
