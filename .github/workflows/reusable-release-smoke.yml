@@ -17,6 +17,11 @@ on:
         type: string
         required: false
         default: '[]'
+      php-version:
+        description: 'PHP version wp-env runs. Must satisfy the plugin header "Requires PHP" or WordPress refuses to activate the artifact. Empty leaves wp-env on its own default.'
+        type: string
+        required: false
+        default: ''
       extra-smoke-commands:
         description: 'JSON array of wp-cli argument strings (everything after "wp") run as additional smoke assertions, e.g. ["help my-command"].'
         type: string
@@ -56,6 +61,7 @@ jobs:
       - name: Write the smoke wp-env config
         env:
           EXTRA_PLUGINS: ${{ inputs.extra-plugins }}
+          PHP_VERSION: ${{ inputs.php-version }}
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
         run: |
           zip_file=$(find smoke -name '*.zip' -print -quit)
@@ -69,7 +75,11 @@ jobs:
             echo "::error::The artifact does not unpack to a $PLUGIN_SLUG directory; check the --plugin-dirname the build passes to wp dist-archive."
             exit 1
           fi
-          jq -n --arg plugin "$plugin_dir" --argjson extra "$EXTRA_PLUGINS" '{ plugins: ( $extra + [$plugin] ) }' > .wp-env.json
+          # A declared PHP floor above wp-env's default makes WordPress refuse activation, which reads as a broken
+          # artifact rather than an environment that cannot host it.
+          jq -n --arg plugin "$plugin_dir" --arg php "$PHP_VERSION" --argjson extra "$EXTRA_PLUGINS" \
+            '{ plugins: ( $extra + [$plugin] ) } + ( if $php == "" then {} else { phpVersion: $php } end )' > .wp-env.json
+          cat .wp-env.json
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
