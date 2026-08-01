@@ -148,20 +148,49 @@ jobs:
           composer changelog:validate
       - name: Install production dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction
-      # wp-cli's own package installer resolves through a composer VCS repository, so it reads the GitHub API and needs a credential composer accepts — and composer rejects some of the tokens Actions mints, which failed releases intermittently. Installing the commands from Packagist into their own directory needs no credential, and lets composer pick versions its wp-cli can actually run.
+      # wp-cli's own package installer resolves through a composer VCS repository, so it reads the GitHub API and needs a credential composer accepts — and composer rejects some of the tokens Actions mints, which failed releases intermittently. Installing dist-archive from Packagist into its own directory needs no credential, and lets composer pick a version its wp-cli can actually run.
       - name: Install the release tooling
         run: |
           mkdir -p "$RUNNER_TEMP/release-tools"
           printf '%s' '{"name":"a8csp/release-tools","require":{}}' > "$RUNNER_TEMP/release-tools/composer.json"
           composer require --no-interaction --working-dir="$RUNNER_TEMP/release-tools" \
-            wp-cli/i18n-command:2.7.0 wp-cli/dist-archive-command:3.1.0
+            wp-cli/dist-archive-command:3.1.0
       # Regenerating the committed POT prevents source changes from shipping stale strings.
+      #
+      # This step runs wp-cli's bundled i18n-command and must not load the release-tools autoloader: a
+      # second copy of i18n-command resolves its classes from both sources at once, and the version skew
+      # between them breaks plugin-header detection with no error — make-pot then treats the plugin as an
+      # unlabelled generic project, dropping the header strings and writing the POT to the package root
+      # instead of the Domain Path. The assertions below are what make that failure loud.
       - name: Generate translation template
         env:
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
         run: |
-          wp --require="$RUNNER_TEMP/release-tools/vendor/autoload.php" i18n make-pot ./ --slug="$PLUGIN_SLUG"
-          test -f "languages/$PLUGIN_SLUG.pot"
+          # A committed POT is a copy of an input rather than a fact and would satisfy the assertions below
+          # on its own, so clearing every copy first is what makes them evidence about this run. Excluding
+          # the dependency trees keeps a bundled package's own template out of both this and the count.
+          find . -name "$PLUGIN_SLUG.pot" -not -path './vendor/*' -not -path './node_modules/*' -delete
+          wp i18n make-pot ./ --slug="$PLUGIN_SLUG"
+
+          # A plugin-mode run writes to the plugin's own Domain Path, so proving the mode proves the
+          # placement, and neither this workflow nor a consumer has to name a translations directory.
+          mapfile -t pots < <( find . -name "$PLUGIN_SLUG.pot" -not -path './vendor/*' -not -path './node_modules/*' )
+          if [ "${#pots[@]}" -ne 1 ]; then
+            echo "::error::make-pot produced ${#pots[@]} copies of $PLUGIN_SLUG.pot, and the archive carries exactly one: ${pots[*]}" >&2
+            exit 1
+          fi
+
+          # Falling back to generic-project mode still reports success and still writes a POT — one that
+          # ignores Domain Path and drops the plugin metadata. make-pot names the package only once it has
+          # read a plugin header, so this standard PO field carries the mode without depending on the
+          # wording of the translator comments alongside it, which are wp-cli's own prose.
+          package=$( sed -n 's/^"Project-Id-Version: \(.*\)\\n"$/\1/p' "${pots[0]}" )
+          if [ -z "$package" ]; then
+            echo "::error::${pots[0]} names no package in Project-Id-Version, so make-pot recognised no plugin and fell back to generic-project mode. Check that i18n-command is loaded once." >&2
+            exit 1
+          fi
+
+          echo "Generated ${pots[0]} for $package"
       - name: Create plugin archive
         env:
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
