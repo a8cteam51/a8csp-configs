@@ -148,20 +148,32 @@ jobs:
           composer changelog:validate
       - name: Install production dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction
-      # wp-cli's own package installer resolves through a composer VCS repository, so it reads the GitHub API and needs a credential composer accepts — and composer rejects some of the tokens Actions mints, which failed releases intermittently. Installing the commands from Packagist into their own directory needs no credential, and lets composer pick versions its wp-cli can actually run.
+      # wp-cli's own package installer resolves through a composer VCS repository, so it reads the GitHub API and needs a credential composer accepts — and composer rejects some of the tokens Actions mints, which failed releases intermittently. Installing dist-archive from Packagist into its own directory needs no credential, and lets composer pick a version its wp-cli can actually run.
       - name: Install the release tooling
         run: |
           mkdir -p "$RUNNER_TEMP/release-tools"
           printf '%s' '{"name":"a8csp/release-tools","require":{}}' > "$RUNNER_TEMP/release-tools/composer.json"
           composer require --no-interaction --working-dir="$RUNNER_TEMP/release-tools" \
-            wp-cli/i18n-command:2.7.0 wp-cli/dist-archive-command:3.1.0
+            wp-cli/dist-archive-command:3.1.0
       # Regenerating the committed POT prevents source changes from shipping stale strings.
+      #
+      # This step runs wp-cli's bundled i18n-command and must not load the release-tools autoloader: a
+      # second copy of i18n-command resolves its classes from both sources at once, and the version skew
+      # between them breaks plugin-header detection with no error — make-pot then treats the plugin as an
+      # unlabelled generic project, dropping the header strings and writing the POT to the package root
+      # instead of the Domain Path. The assertions below are what make that failure loud.
       - name: Generate translation template
         env:
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
         run: |
-          wp --require="$RUNNER_TEMP/release-tools/vendor/autoload.php" i18n make-pot ./ --slug="$PLUGIN_SLUG"
-          test -f "languages/$PLUGIN_SLUG.pot"
+          # The committed POT is a copy of an input rather than a fact, and it satisfies an existence check
+          # by itself; removing it first is what makes the assertions below evidence about this run.
+          rm -f "languages/$PLUGIN_SLUG.pot"
+          wp i18n make-pot ./ --slug="$PLUGIN_SLUG"
+          # Only a plugin-mode run emits the header strings, and a detection failure retargets the POT at
+          # the package root.
+          grep -q 'Plugin Name of the plugin' "languages/$PLUGIN_SLUG.pot"
+          test ! -e "./$PLUGIN_SLUG.pot"
       - name: Create plugin archive
         env:
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
