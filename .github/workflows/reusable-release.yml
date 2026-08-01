@@ -166,32 +166,29 @@ jobs:
         env:
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
         run: |
-          # The committed POT is a copy of an input rather than a fact, and it satisfies an existence check
-          # by itself; removing it first is what makes the assertions below evidence about this run.
-          rm -f "languages/$PLUGIN_SLUG.pot"
+          # A committed POT is a copy of an input rather than a fact and would satisfy the assertions below
+          # on its own, so clearing every copy first is what makes them evidence about this run. Excluding
+          # the dependency trees keeps a bundled package's own template out of both this and the count.
+          find . -name "$PLUGIN_SLUG.pot" -not -path './vendor/*' -not -path './node_modules/*' -delete
           wp i18n make-pot ./ --slug="$PLUGIN_SLUG"
 
-          # make-pot takes its destination from the plugin's Domain Path and falls back to the package root
-          # when it reads none — which is also where it writes when it recognises no plugin at all. The
-          # header strings separate the two, since only a plugin-mode run emits them.
-          if [ -e "./$PLUGIN_SLUG.pot" ]; then
-            if grep -q 'Plugin Name of the plugin' "./$PLUGIN_SLUG.pot"; then
-              echo "::error::make-pot wrote the POT to the package root. a8csp plugins declare 'Domain Path: /languages' in the plugin header, and make-pot takes the destination from it." >&2
-            else
-              echo "::error::make-pot recognised no plugin and fell back to generic-project mode, dropping the header strings. Check that i18n-command is loaded once." >&2
-            fi
+          # A plugin-mode run writes to the plugin's own Domain Path, so proving the mode proves the
+          # placement, and neither this workflow nor a consumer has to name a translations directory.
+          mapfile -t pots < <( find . -name "$PLUGIN_SLUG.pot" -not -path './vendor/*' -not -path './node_modules/*' )
+          if [ "${#pots[@]}" -ne 1 ]; then
+            echo "::error::make-pot produced ${#pots[@]} copies of $PLUGIN_SLUG.pot, and the archive carries exactly one: ${pots[*]}" >&2
             exit 1
           fi
 
-          if [ ! -f "languages/$PLUGIN_SLUG.pot" ]; then
-            echo "::error::make-pot wrote no POT to languages/. a8csp plugins declare 'Domain Path: /languages' in the plugin header, and make-pot takes the destination from it." >&2
+          # Falling back to generic-project mode still reports success and still writes a POT — one that
+          # ignores Domain Path and drops the plugin metadata. Its header strings are the only evidence in
+          # the artifact that the plugin was recognised at all.
+          if ! grep -q 'Plugin Name of the plugin' "${pots[0]}"; then
+            echo "::error::${pots[0]} carries no plugin headers, so make-pot recognised no plugin and fell back to generic-project mode. Check that i18n-command is loaded once." >&2
             exit 1
           fi
 
-          if ! grep -q 'Plugin Name of the plugin' "languages/$PLUGIN_SLUG.pot"; then
-            echo "::error::The POT in languages/ carries no plugin headers, so make-pot fell back to generic-project mode. Check that i18n-command is loaded once." >&2
-            exit 1
-          fi
+          echo "Generated ${pots[0]}"
       - name: Create plugin archive
         env:
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
