@@ -181,14 +181,16 @@ jobs:
           fi
 
           # Falling back to generic-project mode still reports success and still writes a POT — one that
-          # ignores Domain Path and drops the plugin metadata. Its header strings are the only evidence in
-          # the artifact that the plugin was recognised at all.
-          if ! grep -q 'Plugin Name of the plugin' "${pots[0]}"; then
-            echo "::error::${pots[0]} carries no plugin headers, so make-pot recognised no plugin and fell back to generic-project mode. Check that i18n-command is loaded once." >&2
+          # ignores Domain Path and drops the plugin metadata. make-pot names the package only once it has
+          # read a plugin header, so this standard PO field carries the mode without depending on the
+          # wording of the translator comments alongside it, which are wp-cli's own prose.
+          package=$( sed -n 's/^"Project-Id-Version: \(.*\)\\n"$/\1/p' "${pots[0]}" )
+          if [ -z "$package" ]; then
+            echo "::error::${pots[0]} names no package in Project-Id-Version, so make-pot recognised no plugin and fell back to generic-project mode. Check that i18n-command is loaded once." >&2
             exit 1
           fi
 
-          echo "Generated ${pots[0]}"
+          echo "Generated ${pots[0]} for $package"
       - name: Create plugin archive
         env:
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
