@@ -30,6 +30,8 @@
 	<rule ref="WordPress-Docs">
 		<!-- Ignore missing file comment. -->
 		<exclude name="Squiz.Commenting.FileComment.Missing"/>
+		<!-- Ignore end char rule since it conflicts with PhpStorm's code folding regions. -->
+		<exclude name="Squiz.Commenting.InlineComment.InvalidEndChar" />
 	</rule>
 
 	<!-- Test-only relaxations: a few sniffs don't apply here — test classes, methods, and
