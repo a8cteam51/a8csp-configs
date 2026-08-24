@@ -88,7 +88,14 @@ jobs:
 
       - name: Install npm dependencies
         working-directory: ${{ inputs.project-path }}
-        run: npm ci
+        run: |
+          npm ci
+          # The project's own wp-env drives the environment below, so CI runs the version its
+          # lockfile pins — and `npm ci` cannot conjure a package the project does not declare.
+          if [ ! -x ./node_modules/.bin/wp-env ]; then
+            echo "::error::@wordpress/env is not installed in this project — add it to devDependencies. This workflow runs the version the project's lockfile pins."
+            exit 1
+          fi
 
       - name: Build assets
         if: inputs.build-script != ''
@@ -121,12 +128,6 @@ jobs:
           WP_ENV_CORE: ${{ inputs.wp-env-core != '' && inputs.wp-env-core || (inputs.wp-version != '' && format('WordPress/WordPress#tags/{0}', inputs.wp-version)) || '' }}
           WP_ENV_CONFIG_FILE: ${{ inputs.wp-env-config-file }}
         run: |
-          # The project's own wp-env, so CI runs the version its lockfile pins rather than one this
-          # workflow chose — `npm ci` above is what puts it here.
-          if [ ! -x ./node_modules/.bin/wp-env ]; then
-            echo "::error::@wordpress/env is not installed in this project — add it to devDependencies. This workflow runs the version the project's lockfile pins."
-            exit 1
-          fi
           args=()
           if [ -n "$WP_ENV_CONFIG_FILE" ]; then
             args+=(--config "$WP_ENV_CONFIG_FILE")
