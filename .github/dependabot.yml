@@ -41,3 +41,19 @@ updates:
     commit-message:
       prefix: "npm"
     open-pull-requests-limit: 5
+
+  # The wp-env the consumer-fixture smoke runs is the one this lockfile pins, so leaving it out of
+  # dependabot's view would freeze that coverage on an ever-older wp-env.
+  - package-ecosystem: "npm"
+    directory: "/tests/fixtures/wp-env-consumer"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm:
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "npm"
+    open-pull-requests-limit: 5
