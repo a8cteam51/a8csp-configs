@@ -1,0 +1,9 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/wp-env.json",
+	"phpVersion": "8.5",
+	"port": 8901,
+	"testsEnvironment": false,
+	"mappings": {
+		"wp-content/mu-plugins/wp-env-consumer": "./mu-plugin"
+	}
+}

@@ -13,6 +13,13 @@ in a real runtime.
   `require`s the file, and asserts on the returned config array. The target is a returns-array file
   with no coverable named symbol, so its behaviour is proven by assertion rather than attributed
   line coverage.
+- **wp-env consumer smoke** (`.github/workflows/quality.yml`, `tests/fixtures/wp-env-consumer/`) —
+  the one tier that starts WordPress, and it does so to cover this repository's own workflow rather
+  than a plugin. The PHPUnit reusable is dogfooded twice: once with `needs-wp-env: false`, which
+  leaves its wp-env branch untested, and once against the fixture consumer, which declares
+  `@wordpress/env` like a real project so the workflow starts the binary its lockfile pins. The
+  fixture's `smoke.sh` asserts from inside the container that the caller's `wp-version` reached it
+  and that its mapped tree is served — the two things those steps are responsible for.
 - **Config smokes** (`.github/workflows/quality.yml`) — the shared configs are exercised the way a
   consumer's CI will exercise them: `phpcs -e` and a fixture scan prove `phpcs.dist.xml` parses and
   its `<rule ref>`s resolve; a fixture analysis proves `phpstan.dist.neon` runs; `npm run lint:config`
@@ -27,3 +34,9 @@ standards-compliant plugin the PHPCS and PHPStan smokes lint), `node-config/` (t
 harness and the probe inputs it feeds through the Node baselines it exercises), and `block-json/`
 (a schema-valid block for the block.json
 reusable). They exist to give the shared rulesets something real to parse, nothing more.
+
+`wp-env-consumer/` is the exception: it is a working project rather than an input, with its own
+`composer.json`, `package.json` and lockfile, because the workflow under test installs and runs a
+consumer's dependencies. Its `@wordpress/env` is dependabot-tracked for that reason — a fixture
+frozen at an old wp-env would still exercise the workflow while quietly ceasing to exercise the
+version anybody runs.

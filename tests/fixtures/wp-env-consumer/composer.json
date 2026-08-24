@@ -1,0 +1,14 @@
+{
+  "name": "a8csp/wp-env-consumer-fixture",
+  "type": "project",
+  "description": "Fixture consumer of reusable-phpunit.yml's wp-env branch. Not a package; never published.",
+  "license": "MIT",
+
+  "scripts": {
+    "test:wp-env": "./smoke.sh"
+  },
+
+  "scripts-descriptions": {
+    "test:wp-env": "Asserts the environment reusable-phpunit.yml started is running the caller's WordPress and serves this project's mapping. Runs as that workflow's composer-script."
+  }
+}

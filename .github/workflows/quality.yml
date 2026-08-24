@@ -13,6 +13,10 @@ on:
       - 'package-lock.json'
       - 'phpunit.dist.xml'
       - '.github/workflows/quality.yml'
+      - '.github/workflows/reusable-block-json-check.yml'
+      - '.github/workflows/reusable-phpunit.yml'
+      - '.github/workflows/reusable-scripts-styles-lint.yml'
+      - '.github/workflows/reusable-supply-chain-audit.yml'
   push:
     branches: [trunk]
     paths:
@@ -26,6 +30,10 @@ on:
       - 'package-lock.json'
       - 'phpunit.dist.xml'
       - '.github/workflows/quality.yml'
+      - '.github/workflows/reusable-block-json-check.yml'
+      - '.github/workflows/reusable-phpunit.yml'
+      - '.github/workflows/reusable-scripts-styles-lint.yml'
+      - '.github/workflows/reusable-supply-chain-audit.yml'
   schedule:
     - cron: '41 6 * * 1'
   workflow_dispatch:
@@ -154,6 +162,22 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit.yml
     with:
       needs-wp-env: false
+
+  phpunit-wp-env:
+    name: PHPUnit (wp-env fixture)
+    # The job above dogfoods the reusable with needs-wp-env: false, which leaves its wp-env branch —
+    # the npm install assertion, the start, and the always() stop — covered by nothing in the
+    # repository that owns it. This one runs that branch against a fixture consumer, so the blocks
+    # are exercised where they are maintained rather than only wherever they are called.
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-phpunit.yml
+    with:
+      project-path: tests/fixtures/wp-env-consumer
+      composer-script: test:wp-env
+      # The fixture asserts this exact version from inside the container, which is what proves the
+      # input reached it. Change one and the smoke fails until the other follows.
+      wp-version: '6.9.4'
 
   supply-chain:
     name: Supply-chain audit
