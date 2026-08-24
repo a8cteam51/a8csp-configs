@@ -106,7 +106,7 @@ Installs Composer dependencies, optionally starts a WordPress environment, runs 
 | `wp-env-xdebug` | `string` | No | `''` | Value passed to `wp-env start --xdebug=<mode>`, such as `coverage`. An empty value starts without Xdebug. |
 | `needs-wp-env` | `boolean` | No | `true` | Whether to run `npm ci` and start and stop wp-env. Set `false` for unit-only suites without a WordPress runtime. |
 
-When `needs-wp-env` is `true`, the project must contain `package.json` and `package-lock.json`. `wp-env-core` takes precedence over `wp-version`, and the stop step runs under `always()`.
+When `needs-wp-env` is `true`, the project must contain `package.json` and `package-lock.json`, and must declare `@wordpress/env`: the workflow starts the environment with the project's own `node_modules/.bin/wp-env`, so CI runs the version the lockfile pins rather than one this repository chose. A project without it fails with a named error rather than a missing-command exit. `wp-env-core` takes precedence over `wp-version`, and the stop step runs under `always()`.
 
 ```yaml
 jobs:
@@ -122,7 +122,7 @@ Installs PHP and Node.js dependencies, builds assets when configured, runs Playw
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. `npm ci` requires `package.json` and `package-lock.json` there. |
+| `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. `npm ci` requires `package.json` and `package-lock.json` there, declaring `@wordpress/env` — the workflow starts the environment with the project's own locked binary. |
 | `artifact-slug` | `string` | Yes | — | Label used in the uploaded failure-report artifact name. |
 | `php-version` | `string` | No | `'8.5'` | PHP version. |
 | `wp-version` | `string` | No | `''` | WordPress version tag. An empty value defers to the consumer's `.wp-env.json` `core` setting or wp-env's default stable version. |
@@ -157,6 +157,8 @@ Downloads a built plugin zip artifact, installs and activates it in a fresh wp-e
 | `node-version` | `string` | No | `'26'` | Node.js version for the wp-env CLI. |
 
 The caller must grant `actions: read` so the smoke job can download the build artifact. The workflow stops wp-env under `always()`.
+
+This is the one workflow that names a wp-env version of its own. It runs against a downloaded artifact in a directory with no checkout and no `package.json`, so there is no locked binary to defer to the way the PHPUnit and Playwright workflows do; `WP_ENV_VERSION` at the top of the file is that pin.
 
 ```yaml
 jobs:

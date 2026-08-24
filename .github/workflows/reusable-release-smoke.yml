@@ -36,7 +36,10 @@ on:
 permissions: {}
 
 env:
-  # WP_ENV_VERSION is pinned identically in reusable-phpunit.yml, reusable-playwright-e2e.yml, and reusable-release-smoke.yml and must stay in sync — npx-inline @wordpress/env versions are invisible to dependabot, so nothing bumps them together automatically.
+  # The only wp-env version this repository chooses. The other workflows run the consumer's own
+  # locked binary, which this job has none of: it smoke-tests a downloaded artifact in a directory
+  # with no checkout and no package.json, so an explicit version is the only thing available. Nothing
+  # bumps it automatically — an npx-inline version is invisible to dependabot.
   WP_ENV_VERSION: '11.13.0'
 
 jobs:
