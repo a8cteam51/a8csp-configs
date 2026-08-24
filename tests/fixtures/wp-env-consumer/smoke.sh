@@ -16,8 +16,10 @@ EXPECTED_WP=6.9.4
 # The project's own binary, which is the whole subject of the coverage: the workflow starts this one.
 WP_ENV=./node_modules/.bin/wp-env
 
-if ! $WP_ENV run cli sh -c "wp core version | grep -q '^${EXPECTED_WP}'"; then
-	echo "smoke: the environment is not running WordPress ${EXPECTED_WP} — the wp-version the workflow passed did not reach the container." >&2
+# Compared whole rather than matched as a prefix: `6.9.41` and `6.9.4-RC1` are not this version.
+if ! $WP_ENV run cli sh -c "[ \"\$(wp core version)\" = '${EXPECTED_WP}' ]"; then
+	echo "smoke: the environment is not running WordPress ${EXPECTED_WP} — the wp-version the workflow passed did not reach the container. It reports:" >&2
+	$WP_ENV run cli wp core version >&2 || true
 	exit 1
 fi
 

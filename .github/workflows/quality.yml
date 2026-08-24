@@ -13,6 +13,8 @@ on:
       - 'package-lock.json'
       - 'phpunit.dist.xml'
       - '.github/workflows/quality.yml'
+      # Listed alone among the reusables this workflow calls because the fixture job below is that one's only in-repo coverage.
+      - '.github/workflows/reusable-phpunit.yml'
   push:
     branches: [trunk]
     paths:
@@ -26,6 +28,7 @@ on:
       - 'package-lock.json'
       - 'phpunit.dist.xml'
       - '.github/workflows/quality.yml'
+      - '.github/workflows/reusable-phpunit.yml'
   schedule:
     - cron: '41 6 * * 1'
   workflow_dispatch:
