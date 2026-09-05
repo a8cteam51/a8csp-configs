@@ -23,7 +23,7 @@
     "phpstan/phpstan-deprecation-rules": "^2",
     "phpstan/phpstan-strict-rules": "^2",
     "php-stubs/wordpress-stubs": "*",
-    "johnbillion/wp-compat": "^1",
+    "johnbillion/wp-compat": "^1 || ^2",
     "szepeviktor/phpstan-wordpress": "^2",
     "swissspidy/phpstan-no-private": "^1",
 
