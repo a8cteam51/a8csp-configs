@@ -103,10 +103,12 @@ jobs:
           EXTRA_SMOKE_COMMANDS: ${{ inputs.extra-smoke-commands }}
         run: |
           # set -f keeps an entry from glob-expanding against workspace files; the unquoted word-split into wp-cli arguments is the intended contract.
-          set -f
+          # pipefail makes malformed JSON fail the step instead of running zero assertions.
+          set -f -o pipefail
           echo "$EXTRA_SMOKE_COMMANDS" | jq -r '.[]' | while IFS= read -r smoke_command; do
+            # wp-env run passes its stdin into the container, which would drain the remaining entries after the first.
             # shellcheck disable=SC2086
-            npx --yes @wordpress/env@"$WP_ENV_VERSION" run cli wp $smoke_command > /dev/null
+            npx --yes @wordpress/env@"$WP_ENV_VERSION" run cli wp $smoke_command < /dev/null > /dev/null
           done
 
       - name: Stop wp-env
