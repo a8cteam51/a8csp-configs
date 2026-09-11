@@ -8,8 +8,9 @@ The PHP quality-assurance configs live in `php/quality-assurance/`:
 
 | File | Purpose |
 | --- | --- |
-| `phpcs.dist.xml` | Defines the PHPCompatibilityWP, WordPress-Extra, and WordPress-Docs rules, supported-version checks, scan exclusions, and project-wide PHPCS settings. |
-| `phpcs.tests.dist.xml` | Companion ruleset for `tests/`: a distinct rule profile for test code, referenced by a consumer's own tests-only ruleset the same way `phpcs.dist.xml` is referenced by its main ruleset. |
+| `phpcs.dist.xml` | Production profile: the shared base plus the `tests/` exclusion and production-only settings. |
+| `phpcs.tests.dist.xml` | Companion ruleset for `tests/`: the shared base plus test-only relaxations, referenced by a consumer's own tests-only ruleset the same way `phpcs.dist.xml` is referenced by its main ruleset. |
+| `phpcs.base.dist.xml` | The rules both profiles include: PHPCompatibilityWP, WordPress-Extra, and WordPress-Docs, the supported-version floors, scan exclusions, and project-wide PHPCS settings. Consumers reference the two profiles, not this file. |
 | `phpstan.dist.neon` | Defines the PHPStan level, WordPress stubs, shared type aliases, and strict-rule settings. |
 | `phpstan.dist.neon.php` | Adds the conventional root files (`functions-bootstrap.php`, `functions.php`, `uninstall.php`) and source directories to the analysed paths when they exist, and adds scoped dependencies for scanning. It does not add the plugin entry file. |
 

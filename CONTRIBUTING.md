@@ -21,7 +21,7 @@ The following breaking changes are not permitted as routine changes:
 
 ### Version floors
 
-Changes to the PHP and WordPress version floors are the sanctioned exception to the additive or permissive rule. The floors are enforced by the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.dist.xml` and its tests companion, `phpcs.tests.dist.xml`, which move together.
+Changes to the PHP and WordPress version floors are the sanctioned exception to the additive or permissive rule. The floors are enforced by the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.base.dist.xml`, which both PHPCS rulesets include.
 
 PHPCS fixes an included ruleset's `<config>` values when it loads them. A consuming ruleset's own `<config>` elements therefore cannot override these values, regardless of declaration order. A consumer that is not ready for a raised floor must set its required values with `--runtime-set` in its own PHPCS CLI invocation. Only `--runtime-set` has precedence over ruleset-level configuration.
 
