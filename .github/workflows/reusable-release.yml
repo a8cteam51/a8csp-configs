@@ -238,7 +238,7 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           awk -v v="$version" '
-            $0 ~ "^## " v " " { capture = 1; next }
+            $0 ~ "^## \\[?" v "\\]? " { capture = 1; next }
             capture && /^## / { exit }
             capture { print }
           ' CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
