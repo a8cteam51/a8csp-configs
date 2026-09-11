@@ -104,7 +104,7 @@ Installs Composer dependencies, optionally starts a WordPress environment, runs 
 | `node-version` | `string` | No | `'26'` | Node.js version used by the wp-env CLI. |
 | `wp-env-config-file` | `string` | No | `''` | wp-env configuration path relative to `project-path`. An empty value uses `.wp-env.json`; use a separate file per environment instead of the deprecated implicit development/test split. |
 | `wp-env-xdebug` | `string` | No | `''` | Value passed to `wp-env start --xdebug=<mode>`, such as `coverage`. An empty value starts without Xdebug. |
-| `needs-wp-env` | `boolean` | No | `true` | Whether to run `npm ci` and start and stop wp-env. Set `false` for unit-only suites without a WordPress runtime. |
+| `needs-wp-env` | `boolean` | No | `true` | Whether to run `npm ci` and start and stop wp-env. A caller with a unit-only suite must pass `false`; left at the default, the run fails unless the project declares `@wordpress/env`. |
 
 When `needs-wp-env` is `true`, the project must contain `package.json` and `package-lock.json`, and must declare `@wordpress/env`: the workflow starts the environment with the project's own `node_modules/.bin/wp-env`, so CI runs the version the lockfile pins rather than one this repository chose. A project without it fails with a named error rather than a missing-command exit. `wp-env-core` takes precedence over `wp-version`, and the stop step runs under `always()`.
 
