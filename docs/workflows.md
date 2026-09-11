@@ -154,7 +154,6 @@ Verifies, builds, smoke-tests, and publishes a plugin release as a GitHub releas
 | `plugin-slug` | `string` | Yes | — | Plugin directory slug. Names the archive, the POT, and the directory the zip unpacks to. |
 | `php-version` | `string` | Yes | — | PHP version the build and the smoke environment run. Must satisfy the plugin header's `Requires PHP`, or WordPress refuses to activate the artifact. |
 | `entry-file` | `string` | No | `''` | Main plugin file carrying the `Version` header. An empty value uses `<plugin-slug>.php`. |
-| `node-version` | `string` | No | `''` | Node.js version set up before the build. An empty value skips Node.js. |
 | `extra-plugins` | `string` | No | `'[]'` | JSON array of additional wp-env plugin sources installed alongside the artifact during the smoke test. |
 | `extra-smoke-commands` | `string` | No | `'[]'` | JSON array of wp-cli argument strings run as additional smoke assertions. |
 | `publish` | `boolean` | No | `true` | Whether to create the GitHub release. `false` runs every step before it, which exercises the release path without a tag. |
