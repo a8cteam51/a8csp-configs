@@ -85,7 +85,7 @@ jobs:
 ## Supported floors
 
 - PHP 8.5 or later
-- WordPress 7.0 or later
+- WordPress 7.1 or later
 
 ## Versioning
 

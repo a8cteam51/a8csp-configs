@@ -33,7 +33,7 @@
 		<!-- Short ternaries are house style. -->
 		<exclude name="Universal.Operators.DisallowShortTernary" />
 	</rule>
-	<config name="minimum_wp_version" value="7.0"/>
+	<config name="minimum_wp_version" value="7.1"/>
 
 	<!-- Allow additional word delimiters for hook names. -->
 	<rule ref="WordPress.NamingConventions.ValidHookName">

@@ -24,7 +24,7 @@
 		<!-- House style places `declare( strict_types=1 );` inline with the opening tag, before the file docblock. -->
 		<exclude name="PSR12.Files.FileHeader.IncorrectOrder" />
 	</rule>
-	<config name="minimum_wp_version" value="7.0"/>
+	<config name="minimum_wp_version" value="7.1"/>
 
 	<!-- Run against the WordPress-Docs ruleset and check for documentation standards. -->
 	<rule ref="WordPress-Docs">
