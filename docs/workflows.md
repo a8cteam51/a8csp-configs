@@ -47,7 +47,7 @@ jobs:
 
 ## PHP Lint — `.github/workflows/reusable-php-lint.yml`
 
-Installs Composer dependencies and runs each configured Composer script as a separate matrix job.
+Validates `composer.json` and its lock, installs Composer dependencies, and runs each configured Composer script as a separate matrix job.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -55,6 +55,7 @@ Installs Composer dependencies and runs each configured Composer script as a sep
 | `php-version` | `string` | No | `'8.5'` | PHP version for the script jobs. |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
 | `composer-options` | `string` | No | `'--prefer-dist --ignore-platform-req=php+'` | Composer options passed to dependency installation. |
+| `composer-validate` | `boolean` | No | `true` | Whether to run `composer validate --strict` as its own job. It fails when `composer.lock` is out of date with `composer.json` or `composer validate` reports any warning; the dependency install only warns about a stale lock. |
 
 An empty `scripts` array fails validation. Each matrix job invokes its script as `composer "$SCRIPT"`.
 
