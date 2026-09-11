@@ -31,6 +31,10 @@ The consumer sets `testVersion` and `minimum_wp_version` with `--runtime-set` on
 
 An existing `workflow_call` input name is frozen once it ships in a tag. Renaming or removing an input requires a major-version discussion before implementation; it must not be introduced in a silent pull request. Adding an optional input with a default is backwards-compatible.
 
+## npm peer dependencies
+
+The `node/` configs import the packages listed under `peerDependencies`, and a consumer's `@wordpress/scripts` brings its own copies of them. Declare each peer as a minimum (`>=`), never a caret range: a caret range caps the major, so a consumer on the next `@wordpress/scripts` major installs a second, older copy just for this package, and the shared configs silently load the older rules. Raise a floor only to a version this repository's own `devDependencies` install and test.
+
 ## CI gates
 
 Changes under `.github/workflows/**` must pass actionlint and zizmor through `.github/workflows/reusable-workflow-checks.yml`, as invoked by `.github/workflows/workflow-checks.yml`.
