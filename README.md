@@ -23,10 +23,13 @@ Require an immutable release tag in the consuming project's `composer.json`:
     { "type": "vcs", "url": "https://github.com/a8cteam51/a8csp-configs" }
   ],
   "require-dev": {
-    "a8csp/configs": "v1.0.0"
+    "a8csp/configs": "v1.0.0",
+    "roave/security-advisories": "dev-latest"
   }
 }
 ```
+
+The `roave/security-advisories` line is mandatory. This package requires `roave/security-advisories` so that no consumer can install a dependency version with a known security advisory. That package has no stable release, and Composer honors stability flags only in the root package, so under the default `minimum-stability` of `stable`, Composer refuses to install `a8csp/configs` without the root line.
 
 Reference the shared PHPCS ruleset from the consumer's `.phpcs.xml`:
 

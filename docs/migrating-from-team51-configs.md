@@ -14,14 +14,19 @@ Update the existing `repositories` VCS entry, or add one, to point at `https://g
     { "type": "vcs", "url": "https://github.com/a8cteam51/a8csp-configs" }
   ],
   "require-dev": {
-    "a8csp/configs": "v1.0.0"
+    "a8csp/configs": "v1.0.0",
+    "roave/security-advisories": "dev-latest"
   }
 }
 ```
 
 Use the tag selected for the migration rather than `trunk`.
 
-The shared ruleset runs PHPCompatibilityWP, but this package deliberately does not pin the PHPCompatibility packages: Composer honors stability flags only in the root package, so the pre-release majors that sniff current PHP syntax can only be selected by the consumer. Require them alongside the package:
+Composer honors stability flags only in the root package, and two root requirements follow from that.
+
+The `roave/security-advisories` line above is mandatory. This package requires `roave/security-advisories` so that no consumer can install a dependency version with a known security advisory, and because that package has no stable release, Composer refuses to install `a8csp/configs` without the root line under the default `minimum-stability` of `stable`.
+
+The shared ruleset runs PHPCompatibilityWP, but this package deliberately does not pin the PHPCompatibility packages, because only the consumer can select the pre-release majors that sniff current PHP syntax. Require them alongside the package:
 
 ```json
 {
