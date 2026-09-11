@@ -27,8 +27,6 @@
     "szepeviktor/phpstan-wordpress": "^2",
     "swissspidy/phpstan-no-private": "^1",
 
-    "maglnet/composer-require-checker": "^4",
-
     "roave/security-advisories": "dev-latest"
   },
   "require-dev": {
