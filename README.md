@@ -11,7 +11,7 @@ The PHP quality-assurance configs live in `php/quality-assurance/`:
 | `phpcs.dist.xml` | Defines the PHPCompatibilityWP, WordPress-Extra, and WordPress-Docs rules, supported-version checks, scan exclusions, and project-wide PHPCS settings. |
 | `phpcs.tests.dist.xml` | Companion ruleset for `tests/`: a distinct rule profile for test code, referenced by a consumer's own tests-only ruleset the same way `phpcs.dist.xml` is referenced by its main ruleset. |
 | `phpstan.dist.neon` | Defines the PHPStan level, WordPress stubs, shared type aliases, and strict-rule settings. |
-| `phpstan.dist.neon.php` | Discovers conventional plugin entry points and source directories, and adds scoped dependencies for scanning. |
+| `phpstan.dist.neon.php` | Adds the conventional root files (`functions-bootstrap.php`, `functions.php`, `uninstall.php`) and source directories to the analysed paths when they exist, and adds scoped dependencies for scanning. It does not add the plugin entry file. |
 
 The package is not published on Packagist; it resolves from its GitHub repository through the `repositories` entry.
 

@@ -57,6 +57,18 @@ includes:
 
 These are the canonical and only ruleset paths in this package. It has no legacy `quality-assurance/` shim path, unlike `a8cteam51/team51-configs`.
 
+## PHPStan entry file
+
+The shared PHPStan configuration adds the conventional root files (`functions-bootstrap.php`, `functions.php`, `uninstall.php`) and source directories (`src`, `includes`, `models`, `blocks`, `templates`) to the analysed paths when they exist. It does not add the plugin entry file, whose name differs per repository, so PHPStan never analyses that file unless the consumer lists it. List it under `parameters.paths` in the consumer's PHPStan configuration, together with any other file or directory outside the conventional set, and name it as `WPCompat.pluginFile` too. The WordPress compatibility rules read the plugin's `Requires at least` header from that file; without it they look for a file named after the checkout directory, then `plugin.php`, then `style.css`, and stop with "No plugin or theme file found" when none exists. Setting `WPCompat.requiresAtLeast` to a version instead also works.
+
+```neon
+parameters:
+    paths:
+        - %currentWorkingDirectory%/my-plugin.php
+    WPCompat:
+        pluginFile: %currentWorkingDirectory%/my-plugin.php
+```
+
 ## Version floors
 
 Migration raises the configured floors to PHP 8.5 and WordPress 7.1 through the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.dist.xml` and its tests companion, `phpcs.tests.dist.xml`.
