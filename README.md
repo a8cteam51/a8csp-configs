@@ -1,6 +1,6 @@
 # a8csp-configs
 
-`a8csp-configs` provides four shared PHP quality-assurance configs under `php/`, five Node.js tool base configs under `node/`, and ten reusable GitHub Actions workflows for A8C Special Projects repositories.
+`a8csp-configs` provides shared PHP quality-assurance configs under `php/`, Node.js tool base configs under `node/`, and reusable GitHub Actions workflows for A8C Special Projects repositories.
 
 ## `php/` configs
 
@@ -75,7 +75,7 @@ Import or require the JavaScript configs by their export paths, and use the Type
 
 ## Reusable workflows
 
-The ten reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, release smoke tests, script and style linting, supply-chain audits, and workflow checks. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
+The reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, plugin releases, release smoke tests, script and style linting, supply-chain audits, and workflow checks. The release workflow and its smoke test are plugin-only. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
 
 A caller references a workflow from its own workflow file and pins the reference to a tag:
 

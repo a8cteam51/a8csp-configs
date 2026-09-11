@@ -1,5 +1,5 @@
 name: Release Smoke Test
-# The release artifact differs materially from the tested tree (production dependencies, rebuilt assets, .distignore filtering), so it gets installed and activated once before publishing.
+# The release artifact differs materially from the tested tree (production dependencies, a regenerated POT, .distignore filtering), so it gets installed and activated once before publishing.
 
 on:
   workflow_call:

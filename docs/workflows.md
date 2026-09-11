@@ -1,6 +1,6 @@
 # Reusable workflows
 
-This document is the per-workflow `workflow_call` input reference for the ten reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#reusable-workflow-inputs) freeze existing inputs; additional inputs must be optional and define a default.
+This document is the per-workflow `workflow_call` input reference for the reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#reusable-workflow-inputs) freeze existing inputs; additional inputs must be optional and define a default.
 
 ## block.json Schema Check — `.github/workflows/reusable-block-json-check.yml`
 
@@ -145,9 +145,48 @@ jobs:
       artifact-slug: primary
 ```
 
+## Release — `.github/workflows/reusable-release.yml`
+
+Verifies, builds, smoke-tests, and publishes a plugin release as a GitHub release carrying the plugin zip. It is plugin-only: it reads the plugin header's `Version`, generates the translation template in plugin mode, archives with `wp dist-archive --plugin-dirname`, and smoke-tests the zip by activating it as a plugin, so a site or theme repository cannot use it.
+
+| Input | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `plugin-slug` | `string` | Yes | — | Plugin directory slug. Names the archive, the POT, and the directory the zip unpacks to. |
+| `php-version` | `string` | Yes | — | PHP version the build and the smoke environment run. Must satisfy the plugin header's `Requires PHP`, or WordPress refuses to activate the artifact. |
+| `entry-file` | `string` | No | `''` | Main plugin file carrying the `Version` header. An empty value uses `<plugin-slug>.php`. |
+| `node-version` | `string` | No | `''` | Node.js version set up before the build. An empty value skips Node.js. |
+| `extra-plugins` | `string` | No | `'[]'` | JSON array of additional wp-env plugin sources installed alongside the artifact during the smoke test. |
+| `extra-smoke-commands` | `string` | No | `'[]'` | JSON array of wp-cli argument strings run as additional smoke assertions. |
+| `publish` | `boolean` | No | `true` | Whether to create the GitHub release. `false` runs every step before it, which exercises the release path without a tag. |
+
+The version check runs first: the plugin header `Version`, the `package.json` `version`, and the first `## ` heading of `CHANGELOG.md` must agree, and on a tag run they must also equal the tag without its `v` prefix. Two branches then run in parallel, and the release publishes only when both succeed:
+
+- **Provenance.** The tagged commit must already have successful `push` runs of `.github/workflows/quality.yml` and `.github/workflows/tests.yml`. A release reuses those results instead of running the suites again, so tag only a commit whose Quality and Tests runs are green.
+- **Build and smoke test.** The build runs `composer changelog:validate`, installs production Composer dependencies, regenerates the POT, and creates the zip. It runs no npm command, so the zip carries the build output committed at the tagged commit. The zip is then installed and activated through [the release smoke test](#release-smoke-test--githubworkflowsreusable-release-smokeyml).
+
+Publishing creates the GitHub release with the zip attached and the version's `CHANGELOG.md` section as its notes. A tag containing `-` is published as a prerelease and is not marked as the latest release.
+
+[The scripts contract](scripts-contract.md#release) lists the files and scripts this workflow expects the consumer to provide. The caller must grant `contents: write` and `actions: read`.
+
+```yaml
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    permissions:
+      actions: read
+      contents: write
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release.yml@v1.0.0
+    with:
+      plugin-slug: ${{ github.event.repository.name }}
+      php-version: '8.5'
+```
+
 ## Release Smoke Test — `.github/workflows/reusable-release-smoke.yml`
 
-Downloads a built plugin zip artifact, installs and activates it in a fresh wp-env, and fails if activation errors or the site stops serving. The release artifact differs materially from the tested tree (production dependencies, rebuilt assets, `.distignore` filtering), so it is exercised once before publishing.
+Downloads a built plugin zip artifact, installs and activates it in a fresh wp-env, and fails if activation errors or the site stops serving. The release artifact differs materially from the tested tree (production dependencies, a regenerated POT, `.distignore` filtering), so it is exercised once before publishing.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
