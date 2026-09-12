@@ -17,11 +17,6 @@ on:
         type: string
         required: false
         default: ''
-      node-version:
-        description: 'Node.js version set up before the build. Empty skips Node entirely.'
-        type: string
-        required: false
-        default: ''
       extra-plugins:
         description: 'JSON array of additional wp-env plugin sources installed alongside the artifact during smoke.'
         type: string
@@ -136,12 +131,6 @@ jobs:
           php-version: ${{ inputs.php-version }}
           coverage: none
           tools: composer:v2, wp-cli
-      - if: inputs.node-version != ''
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: ${{ inputs.node-version }}
-          # Release builds run cache-free: a runtime cache is a poisoning vector for a publishing workflow.
-          package-manager-cache: false
       - name: Validate changelog
         run: |
           composer install --no-interaction
@@ -238,7 +227,7 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           awk -v v="$version" '
-            $0 ~ "^## " v " " { capture = 1; next }
+            $0 ~ "^## \\[?" v "\\]? " { capture = 1; next }
             capture && /^## / { exit }
             capture { print }
           ' CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
