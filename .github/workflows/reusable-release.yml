@@ -230,8 +230,9 @@ jobs:
       - name: Collect the release notes
         run: |
           version="${GITHUB_REF_NAME#v}"
+          # index() matches the heading as text; a regex would read the version's . and + as operators.
           awk -v v="$version" '
-            $0 ~ "^## \\[?" v "\\]? " { capture = 1; next }
+            index($0, "## " v " ") == 1 || index($0, "## [" v "] ") == 1 { capture = 1; next }
             capture && /^## / { exit }
             capture { print }
           ' CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
