@@ -17,11 +17,6 @@ on:
         type: string
         required: false
         default: ''
-      node-version:
-        description: 'Node.js version set up before the build. Empty skips Node entirely.'
-        type: string
-        required: false
-        default: ''
       extra-plugins:
         description: 'JSON array of additional wp-env plugin sources installed alongside the artifact during smoke.'
         type: string
@@ -33,7 +28,7 @@ on:
         required: false
         default: '[]'
       publish:
-        description: 'Whether to create the GitHub release. False runs everything up to it, which is how this path can be exercised without a tag.'
+        description: 'Whether to create the GitHub release. True requires a tag run. False runs everything up to it, which is how this path can be exercised without a tag.'
         type: boolean
         required: false
         default: true
@@ -57,6 +52,7 @@ jobs:
           ENTRY_FILE: ${{ inputs.entry-file }}
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
           TAG: ${{ github.ref_name }}
+          PUBLISH: ${{ inputs.publish }}
         run: |
           set -euo pipefail
 
@@ -69,6 +65,9 @@ jobs:
           tag_version=""
           if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
             tag_version="${TAG#v}"
+          elif [ "$PUBLISH" = "true" ]; then
+            echo "::error::publish is on, but $TAG is not a tag. Run from a tag to release, or turn publish off to exercise the release path." >&2
+            exit 1
           fi
 
           if [ -z "$plugin_version" ] || [ -z "$package_version" ] || [ -z "$changelog_version" ] \
@@ -136,12 +135,6 @@ jobs:
           php-version: ${{ inputs.php-version }}
           coverage: none
           tools: composer:v2, wp-cli
-      - if: inputs.node-version != ''
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: ${{ inputs.node-version }}
-          # Release builds run cache-free: a runtime cache is a poisoning vector for a publishing workflow.
-          package-manager-cache: false
       - name: Validate changelog
         run: |
           composer install --no-interaction
@@ -200,7 +193,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-zip
-          path: ./*.zip
+          path: ./${{ inputs.plugin-slug }}.zip
           retention-days: 1
 
   smoke:
@@ -225,7 +218,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      # Checked out for CHANGELOG.md alone; the artifact is downloaded afterwards so ./*.zip is only ever it.
+      # Checked out for CHANGELOG.md alone; the archive lands outside the tree, so no committed file can stand in for it.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -233,12 +226,14 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-zip
+          path: ${{ runner.temp }}/release
       # The release describes what changed, which the changelog already states; generated notes replace that with every merged pull request since the repository began, dependency bumps included.
       - name: Collect the release notes
         run: |
           version="${GITHUB_REF_NAME#v}"
+          # index() matches the heading as text; a regex would read the version's . and + as operators.
           awk -v v="$version" '
-            $0 ~ "^## " v " " { capture = 1; next }
+            index($0, "## " v " ") == 1 || index($0, "## [" v "] ") == 1 { capture = 1; next }
             capture && /^## / { exit }
             capture { print }
           ' CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
@@ -248,10 +243,11 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          PLUGIN_SLUG: ${{ inputs.plugin-slug }}
         run: |
           # The job takes only the artifact and the changelog, so gh is told which repository to release in, and hyphenated SemVer tags must stay off the stable updater's latest-release endpoint.
           if [[ "$GITHUB_REF_NAME" == *-* ]]; then
-            gh release create "$GITHUB_REF_NAME" ./*.zip --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --prerelease --latest=false
+            gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/release/$PLUGIN_SLUG.zip" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag --prerelease --latest=false
           else
-            gh release create "$GITHUB_REF_NAME" ./*.zip --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md"
+            gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/release/$PLUGIN_SLUG.zip" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag
           fi

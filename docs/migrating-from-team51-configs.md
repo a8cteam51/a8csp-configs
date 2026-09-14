@@ -14,14 +14,19 @@ Update the existing `repositories` VCS entry, or add one, to point at `https://g
     { "type": "vcs", "url": "https://github.com/a8cteam51/a8csp-configs" }
   ],
   "require-dev": {
-    "a8csp/configs": "v1.0.0"
+    "a8csp/configs": "v1.0.0",
+    "roave/security-advisories": "dev-latest"
   }
 }
 ```
 
 Use the tag selected for the migration rather than `trunk`.
 
-The shared ruleset runs PHPCompatibilityWP, but this package deliberately does not pin the PHPCompatibility packages: Composer honors stability flags only in the root package, so the pre-release majors that sniff current PHP syntax can only be selected by the consumer. Require them alongside the package:
+Composer honors stability flags only in the root package, and two root requirements follow from that.
+
+The `roave/security-advisories` line above is mandatory. This package requires `roave/security-advisories` so that no consumer can install a dependency version with a known security advisory, and because that package has no stable release, Composer refuses to install `a8csp/configs` without the root line under the default `minimum-stability` of `stable`.
+
+The shared ruleset runs PHPCompatibilityWP, but this package deliberately does not pin the PHPCompatibility packages, because only the consumer can select the pre-release majors that sniff current PHP syntax. Require them alongside the package:
 
 ```json
 {
@@ -52,9 +57,21 @@ includes:
 
 These are the canonical and only ruleset paths in this package. It has no legacy `quality-assurance/` shim path, unlike `a8cteam51/team51-configs`.
 
+## PHPStan entry file
+
+The shared PHPStan configuration adds the conventional root files (`functions-bootstrap.php`, `functions.php`, `uninstall.php`) and source directories (`src`, `includes`, `models`, `blocks`, `templates`) to the analysed paths when they exist. It does not add the plugin entry file, whose name differs per repository, so PHPStan never analyses that file unless the consumer lists it. List it under `parameters.paths` in the consumer's PHPStan configuration, together with any other file or directory outside the conventional set, and name it as `WPCompat.pluginFile` too. The WordPress compatibility rules read the plugin's `Requires at least` header from that file; without it they look for a file named after the checkout directory, then `plugin.php`, then `style.css`, and stop with "No plugin or theme file found" when none exists. Setting `WPCompat.requiresAtLeast` to a version instead also works.
+
+```neon
+parameters:
+    paths:
+        - %currentWorkingDirectory%/my-plugin.php
+    WPCompat:
+        pluginFile: %currentWorkingDirectory%/my-plugin.php
+```
+
 ## Version floors
 
-Migration raises the configured floors to PHP 8.5 and WordPress 7.0 through the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.dist.xml`.
+Migration raises the configured floors to PHP 8.5 and WordPress 7.1 through the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.base.dist.xml`, which both the production and tests rulesets include.
 
 A consumer that is not ready for either floor must opt out per repository with `--runtime-set` in its own PHPCS CLI invocation. A consuming ruleset's `<config>` elements cannot override an included ruleset's already-set `<config>` values, regardless of declaration order. Only `--runtime-set` has precedence over ruleset-level configuration.
 

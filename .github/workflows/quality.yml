@@ -89,6 +89,18 @@ jobs:
           # The ruleset's own exclude-patterns can silently empty the file list, and an empty scan proves nothing.
           ! grep -qF '(0 files in queue)' phpcs-scan.log
 
+      # Both profiles include phpcs.base.dist.xml, and an exclude-pattern in an included ruleset applies
+      # to every ruleset that includes it: a */tests/* exclusion reaching the base would leave the tests
+      # profile scanning nothing while still exiting 0.
+      - name: Scan a tests/ fixture with php/quality-assurance/phpcs.tests.dist.xml
+        shell: bash
+        run: |
+          set -e -o pipefail
+          mkdir -p "$RUNNER_TEMP/consumer/tests"
+          cp tests/fixtures/plugin-stub/src/Example.php "$RUNNER_TEMP/consumer/tests/Example.php"
+          vendor/bin/phpcs -v --standard=php/quality-assurance/phpcs.tests.dist.xml "$RUNNER_TEMP/consumer/tests" | tee phpcs-tests-scan.log
+          ! grep -qF '(0 files in queue)' phpcs-tests-scan.log
+
   phpstan-smoke:
     name: PHPStan dist-file smoke test
     runs-on: ubuntu-latest

@@ -1,6 +1,6 @@
 # a8csp-configs
 
-`a8csp-configs` provides four shared PHP quality-assurance configs under `php/`, five Node.js tool base configs under `node/`, and ten reusable GitHub Actions workflows for A8C Special Projects repositories.
+`a8csp-configs` provides shared PHP quality-assurance configs under `php/`, Node.js tool base configs under `node/`, and reusable GitHub Actions workflows for A8C Special Projects repositories.
 
 ## `php/` configs
 
@@ -8,10 +8,11 @@ The PHP quality-assurance configs live in `php/quality-assurance/`:
 
 | File | Purpose |
 | --- | --- |
-| `phpcs.dist.xml` | Defines the PHPCompatibilityWP, WordPress-Extra, and WordPress-Docs rules, supported-version checks, scan exclusions, and project-wide PHPCS settings. |
-| `phpcs.tests.dist.xml` | Companion ruleset for `tests/`: a distinct rule profile for test code, referenced by a consumer's own tests-only ruleset the same way `phpcs.dist.xml` is referenced by its main ruleset. |
+| `phpcs.dist.xml` | Production profile: the shared base plus the `tests/` exclusion and production-only settings. |
+| `phpcs.tests.dist.xml` | Companion ruleset for `tests/`: the shared base plus test-only relaxations, referenced by a consumer's own tests-only ruleset the same way `phpcs.dist.xml` is referenced by its main ruleset. |
+| `phpcs.base.dist.xml` | The rules both profiles include: PHPCompatibilityWP, WordPress-Extra, and WordPress-Docs, the supported-version floors, scan exclusions, and project-wide PHPCS settings. Consumers reference the two profiles, not this file. |
 | `phpstan.dist.neon` | Defines the PHPStan level, WordPress stubs, shared type aliases, and strict-rule settings. |
-| `phpstan.dist.neon.php` | Discovers conventional plugin entry points and source directories, and adds scoped dependencies for scanning. |
+| `phpstan.dist.neon.php` | Adds the conventional root files (`functions-bootstrap.php`, `functions.php`, `uninstall.php`) and source directories to the analysed paths when they exist, and adds scoped dependencies for scanning. It does not add the plugin entry file. |
 
 The package is not published on Packagist; it resolves from its GitHub repository through the `repositories` entry.
 
@@ -23,10 +24,13 @@ Require an immutable release tag in the consuming project's `composer.json`:
     { "type": "vcs", "url": "https://github.com/a8cteam51/a8csp-configs" }
   ],
   "require-dev": {
-    "a8csp/configs": "v1.0.0"
+    "a8csp/configs": "v1.0.0",
+    "roave/security-advisories": "dev-latest"
   }
 }
 ```
+
+The `roave/security-advisories` line is mandatory. This package requires `roave/security-advisories` so that no consumer can install a dependency version with a known security advisory. That package has no stable release, and Composer honors stability flags only in the root package, so under the default `minimum-stability` of `stable`, Composer refuses to install `a8csp/configs` without the root line.
 
 Reference the shared PHPCS ruleset from the consumer's `.phpcs.xml`:
 
@@ -72,7 +76,7 @@ Import or require the JavaScript configs by their export paths, and use the Type
 
 ## Reusable workflows
 
-The ten reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, release smoke tests, script and style linting, supply-chain audits, and workflow checks. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
+The reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, plugin releases, release smoke tests, script and style linting, supply-chain audits, and workflow checks. The release workflow and its smoke test are plugin-only. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
 
 A caller references a workflow from its own workflow file and pins the reference to a tag:
 
@@ -85,7 +89,7 @@ jobs:
 ## Supported floors
 
 - PHP 8.5 or later
-- WordPress 7.0 or later
+- WordPress 7.1 or later
 
 ## Versioning
 

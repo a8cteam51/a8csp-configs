@@ -2,7 +2,8 @@
 
 This document names the composer and npm script identifiers the reusable workflows in this
 repository treat as their interface. A consuming project's `composer.json` and `package.json`
-scripts must use these names for the corresponding reusable workflow to find and run them.
+scripts must use these names for the corresponding reusable workflow to find and run them. It also
+lists the files the release workflow reads from the consumer's tree.
 
 ## Fixed names
 
@@ -13,6 +14,7 @@ input.
 | --- | --- | --- | --- |
 | `lint:scripts` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-scripts` input is `true` (default). |
 | `lint:styles` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-styles` input is `true` (default). |
+| `changelog:validate` | composer | `reusable-release.yml` | Runs in every release build, before the production install. |
 
 ## Default names (input-overridable)
 
@@ -34,8 +36,19 @@ and `lint:php:phpstan`, passed as `'["lint:php:phpcs", "lint:php:phpcs:tests", "
 The `lint:php:phpcs:tests` job runs the companion tests-profile ruleset over `tests/`; a consumer
 that omits it lints production code but leaves its test code unchecked.
 
+## Release
+
+Besides the `changelog:validate` script, `reusable-release.yml` depends on these files in the
+consumer's repository. Only the entry file can be changed through a `workflow_call` input.
+
+| File | Requirement |
+| --- | --- |
+| `<plugin-slug>.php` | Main plugin file whose docblock header line `* Version: <version>` states the release version. The `entry-file` input names a different file. |
+| `package.json` | Its `version` field must equal the plugin header `Version`. |
+| `CHANGELOG.md` | Its first `## ` heading must name the same version, as `## <version> - <date>` or `## [<version>] - <date>`. The section under that heading becomes the release notes. |
+| `.github/workflows/quality.yml` and `.github/workflows/tests.yml` | Both workflows must have a successful `push` run on the tagged commit, or the release fails before it publishes. |
+
 ## Out of scope
 
-The reusable release-smoke workflow runs no consumer-defined script — it installs and activates the
-built artifact through wp-env — and this repository ships no changelog workflow, so no changelog
-script name is part of this contract.
+The reusable release-smoke workflow runs no consumer-defined script: it installs and activates the
+built artifact through wp-env.
