@@ -5,11 +5,11 @@ on:
   workflow_call:
     inputs:
       zip-artifact:
-        description: 'Name of the uploaded artifact containing the built plugin zip.'
+        description: 'Name of the uploaded artifact containing the built plugin as <plugin-slug>.zip.'
         type: string
         required: true
       plugin-slug:
-        description: 'The plugin directory slug the zip unpacks to (wp dist-archive --plugin-dirname).'
+        description: 'The plugin directory slug. Names the zip in the artifact and the directory it unpacks to (wp dist-archive --plugin-dirname).'
         type: string
         required: true
       extra-plugins:
@@ -65,9 +65,9 @@ jobs:
           PHP_VERSION: ${{ inputs.php-version }}
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
         run: |
-          zip_file=$(find smoke -name '*.zip' -print -quit)
-          if [ -z "$zip_file" ]; then
-            echo "::error::No plugin zip found in the downloaded artifact — nothing to smoke test."
+          zip_file="smoke/$PLUGIN_SLUG.zip"
+          if [ ! -f "$zip_file" ]; then
+            echo "::error::The downloaded artifact has no $PLUGIN_SLUG.zip — nothing to smoke test."
             exit 1
           fi
           unzip -q "$zip_file" -d smoke/unpacked

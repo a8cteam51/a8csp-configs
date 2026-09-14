@@ -190,8 +190,8 @@ Downloads a built plugin zip artifact, installs and activates it in a fresh wp-e
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `zip-artifact` | `string` | Yes | — | Name of the uploaded artifact containing the built plugin zip. |
-| `plugin-slug` | `string` | Yes | — | The plugin directory slug the zip unpacks to (`wp dist-archive --plugin-dirname`). |
+| `zip-artifact` | `string` | Yes | — | Name of the uploaded artifact containing the built plugin as `<plugin-slug>.zip`. |
+| `plugin-slug` | `string` | Yes | — | The plugin directory slug. Names the zip in the artifact and the directory it unpacks to (`wp dist-archive --plugin-dirname`). |
 | `extra-plugins` | `string` | No | `'[]'` | JSON array of additional wp-env plugin sources (e.g. a host plugin zip URL) installed alongside the artifact. |
 | `php-version` | `string` | No | `''` | PHP version wp-env runs. Must satisfy the plugin header's `Requires PHP`, or WordPress refuses to activate the artifact. An empty value leaves wp-env on its own default. |
 | `extra-smoke-commands` | `string` | No | `'[]'` | JSON array of wp-cli argument strings (everything after `wp`) run as additional smoke assertions, such as `["help my-command"]`. Each entry is split into arguments on whitespace, and a non-zero exit fails the job. |

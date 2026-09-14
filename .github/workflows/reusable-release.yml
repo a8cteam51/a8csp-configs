@@ -193,7 +193,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-zip
-          path: ./*.zip
+          path: ./${{ inputs.plugin-slug }}.zip
           retention-days: 1
 
   smoke:
@@ -218,7 +218,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      # Checked out for CHANGELOG.md alone; the artifact is downloaded afterwards so ./*.zip is only ever it.
+      # Checked out for CHANGELOG.md alone; the archive lands outside the tree, so no committed file can stand in for it.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -226,6 +226,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-zip
+          path: ${{ runner.temp }}/release
       # The release describes what changed, which the changelog already states; generated notes replace that with every merged pull request since the repository began, dependency bumps included.
       - name: Collect the release notes
         run: |
@@ -242,10 +243,11 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          PLUGIN_SLUG: ${{ inputs.plugin-slug }}
         run: |
           # The job takes only the artifact and the changelog, so gh is told which repository to release in, and hyphenated SemVer tags must stay off the stable updater's latest-release endpoint.
           if [[ "$GITHUB_REF_NAME" == *-* ]]; then
-            gh release create "$GITHUB_REF_NAME" ./*.zip --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag --prerelease --latest=false
+            gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/release/$PLUGIN_SLUG.zip" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag --prerelease --latest=false
           else
-            gh release create "$GITHUB_REF_NAME" ./*.zip --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag
+            gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/release/$PLUGIN_SLUG.zip" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag
           fi
