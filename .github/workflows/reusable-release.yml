@@ -28,7 +28,7 @@ on:
         required: false
         default: '[]'
       publish:
-        description: 'Whether to create the GitHub release. False runs everything up to it, which is how this path can be exercised without a tag.'
+        description: 'Whether to create the GitHub release. True requires a tag run. False runs everything up to it, which is how this path can be exercised without a tag.'
         type: boolean
         required: false
         default: true
@@ -52,6 +52,7 @@ jobs:
           ENTRY_FILE: ${{ inputs.entry-file }}
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
           TAG: ${{ github.ref_name }}
+          PUBLISH: ${{ inputs.publish }}
         run: |
           set -euo pipefail
 
@@ -64,6 +65,9 @@ jobs:
           tag_version=""
           if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
             tag_version="${TAG#v}"
+          elif [ "$PUBLISH" = "true" ]; then
+            echo "::error::publish is on, but $TAG is not a tag. Run from a tag to release, or turn publish off to exercise the release path." >&2
+            exit 1
           fi
 
           if [ -z "$plugin_version" ] || [ -z "$package_version" ] || [ -z "$changelog_version" ] \
@@ -240,7 +244,7 @@ jobs:
         run: |
           # The job takes only the artifact and the changelog, so gh is told which repository to release in, and hyphenated SemVer tags must stay off the stable updater's latest-release endpoint.
           if [[ "$GITHUB_REF_NAME" == *-* ]]; then
-            gh release create "$GITHUB_REF_NAME" ./*.zip --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --prerelease --latest=false
+            gh release create "$GITHUB_REF_NAME" ./*.zip --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag --prerelease --latest=false
           else
-            gh release create "$GITHUB_REF_NAME" ./*.zip --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md"
+            gh release create "$GITHUB_REF_NAME" ./*.zip --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag
           fi

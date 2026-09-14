@@ -157,7 +157,7 @@ Verifies, builds, smoke-tests, and publishes a plugin release as a GitHub releas
 | `entry-file` | `string` | No | `''` | Main plugin file carrying the `Version` header. An empty value uses `<plugin-slug>.php`. |
 | `extra-plugins` | `string` | No | `'[]'` | JSON array of additional wp-env plugin sources installed alongside the artifact during the smoke test. |
 | `extra-smoke-commands` | `string` | No | `'[]'` | JSON array of wp-cli argument strings run as additional smoke assertions. |
-| `publish` | `boolean` | No | `true` | Whether to create the GitHub release. `false` runs every step before it, which exercises the release path without a tag. |
+| `publish` | `boolean` | No | `true` | Whether to create the GitHub release. `true` requires a tag run; on any other ref the version check fails. `false` runs every step before it, which exercises the release path without a tag. |
 
 The version check runs first: the plugin header `Version`, the `package.json` `version`, and the first `## ` heading of `CHANGELOG.md` must agree, and on a tag run they must also equal the tag without its `v` prefix. Two branches then run in parallel, and the release publishes only when both succeed:
 
