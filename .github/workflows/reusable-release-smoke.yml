@@ -104,7 +104,7 @@ jobs:
         run: |
           # set -f keeps an entry from glob-expanding against workspace files; the unquoted word-split into wp-cli arguments is the intended contract.
           # pipefail makes malformed JSON fail the step instead of running zero assertions.
-          set -f -o pipefail
+          set -e -f -o pipefail
           echo "$EXTRA_SMOKE_COMMANDS" | jq -r '.[]' | while IFS= read -r smoke_command; do
             # wp-env run passes its stdin into the container, which would drain the remaining entries after the first.
             # shellcheck disable=SC2086
