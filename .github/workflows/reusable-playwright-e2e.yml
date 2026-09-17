@@ -140,14 +140,14 @@ jobs:
           PLAYWRIGHT_SCRIPT: ${{ inputs.playwright-script }}
         run: npm run "$PLAYWRIGHT_SCRIPT"
 
-      - name: Upload Playwright report on failure
+      - name: Upload Playwright artifacts on failure
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report-${{ inputs.artifact-slug }}
-          path: |
-            ${{ inputs.project-path }}/playwright-report
-            ${{ inputs.project-path }}/artifacts
+          # The shared Playwright base points WP_ARTIFACTS_PATH here, and its reporter is `list`, so
+          # traces and screenshots are the only failure evidence and no HTML report is written.
+          path: ${{ inputs.project-path }}/tests/.cache/artifacts
           retention-days: 7
 
       - name: Stop wp-env
