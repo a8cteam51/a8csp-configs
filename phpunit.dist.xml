@@ -11,6 +11,7 @@
          failOnRisky="true"
          beStrictAboutCoverageMetadata="true"
          beStrictAboutOutputDuringTests="true"
+         executionOrder="depends,defects,random"
          cacheDirectory="tests/.cache/phpunit">
     <testsuites>
         <testsuite name="Unit">

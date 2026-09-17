@@ -60,6 +60,28 @@ names the script anything else has no web server at all. This one fails loudly o
 `npm run test:e2e` and never surfaces in CI, because `reusable-playwright-e2e.yml` starts wp-env in
 its own step and Playwright's `reuseExistingServer` finds it already listening.
 
+## PHPUnit configuration
+
+PHPUnit's XML format has no include mechanism, so this package ships no shared base and every
+repository owns its configuration outright. The convention below is what keeps those copies from
+drifting.
+
+The file is named `phpunit.dist.xml` and carries at least these attributes on the root element:
+
+| Attribute | Value | Purpose |
+| --- | --- | --- |
+| `failOnWarning` | `true` | A warning ends the run rather than scrolling past in a green report. |
+| `failOnRisky` | `true` | A test that asserts nothing or leaves state behind ends the run. |
+| `failOnNotice` | `true` | A notice ends the run. |
+| `beStrictAboutOutputDuringTests` | `true` | Output from the code under test marks the test risky, which `failOnRisky` then turns into a failure. |
+| `colors` | `true` | Readable output locally and in the Actions log. |
+| `cacheDirectory` | `tests/.cache/phpunit` | Keeps the result cache beside the other tool caches instead of in the repository root. |
+
+`executionOrder` is `depends,defects,random`. A repository that needs a different order states the
+reason in a comment beside the attribute. `resolveDependencies` is a separate attribute defaulting
+to `true`, so `random` still honors `#[Depends]`; running defects first keeps the local feedback
+loop short, and randomizing the rest surfaces tests that pass only in a particular order.
+
 ## Release
 
 Besides the `changelog:validate` script, `reusable-release.yml` depends on these files in the
