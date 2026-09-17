@@ -3,7 +3,9 @@
 This document names the composer and npm script identifiers the reusable workflows in this
 repository treat as their interface. A consuming project's `composer.json` and `package.json`
 scripts must use these names for the corresponding reusable workflow to find and run them. It also
-lists the files the release workflow reads from the consumer's tree.
+lists the files the release workflow reads from the consumer's tree, the names the fleet shares by
+convention alone, what a consumer's own scripts have to do for the workflows to hold, and the
+PHPUnit configuration every repository copies.
 
 ## Fixed names
 
@@ -36,6 +38,30 @@ consumers is a `lint:php` composer script that aggregates `lint:php:phpcs`, `lin
 and `lint:php:phpstan`, passed as `'["lint:php:phpcs", "lint:php:phpcs:tests", "lint:php:phpstan"]'`.
 The `lint:php:phpcs:tests` job runs the companion tests-profile ruleset over `tests/`; a consumer
 that omits it lints production code but leaves its test code unchecked.
+
+## Conventional names (not read by any workflow)
+
+No workflow resolves any of these. They are the names the fleet has settled on for recurring jobs,
+so that a developer moving between repositories reaches for the same script. A repository that has
+the job uses the name; one that does not have the job omits the script.
+
+| Script | Ecosystem | Job |
+| --- | --- | --- |
+| `packages-install` | composer, npm | Installs dependencies for local work. The composer copy passes `--ignore-platform-req=php+`, so a PHP newer than the declared floor still installs. |
+| `packages-update` | composer, npm | Updates dependencies within the declared constraints. |
+| `packages-update:wp` | npm | Moves the `@wordpress/*` packages onto the dist-tag for the supported WordPress version. |
+| `audit` | npm | Runs the Composer and npm audits together, with the same flags the caller passes `reusable-supply-chain-audit.yml`, so a local run and CI agree. |
+| `check:engines` | npm | Checks the running Node and npm against the `engines` field. |
+| `check:licenses` | npm | Checks dependency licenses. |
+| `format:php` | composer | Rewrites PHP with `phpcbf` against the repository's own ruleset. |
+| `internationalize` | composer | Runs the `i18n:*` steps in order to regenerate the language files. |
+| `quality-check` | composer | The aggregate to run before pushing: the lint scripts plus the unit suite. |
+| `changelog:add` | composer | Records a changelog entry for the change in hand. |
+| `changelog:write` | composer | Folds the recorded entries into `CHANGELOG.md` for a release. |
+| `wp-env:start` | npm | Starts the development environment. This one name is load-bearing — see [Consumer obligations](#consumer-obligations). |
+
+Nothing fails when a name here is missing or spelled differently. The names under Fixed names and
+Default names are the ones a workflow resolves.
 
 ## Consumer obligations
 
