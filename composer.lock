@@ -6659,7 +6659,7 @@
         "phpcompatibility/phpcompatibility-wp": 15,
         "roave/security-advisories": 20
     },
-    "prefer-stable": false,
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": ">=8.5",
