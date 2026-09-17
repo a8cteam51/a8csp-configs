@@ -23,6 +23,11 @@ on:
         type: boolean
         required: false
         default: true
+      lint-types:
+        description: 'Run `npm run lint:types` (TypeScript). Set true for repos with TypeScript sources.'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -57,3 +62,8 @@ jobs:
         if: ${{ inputs.lint-styles }}
         working-directory: ${{ inputs.project-path }}
         run: npm run lint:styles
+
+      - name: Lint types
+        if: ${{ inputs.lint-types }}
+        working-directory: ${{ inputs.project-path }}
+        run: npm run lint:types

@@ -14,6 +14,7 @@ input.
 | --- | --- | --- | --- |
 | `lint:scripts` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-scripts` input is `true` (default). |
 | `lint:styles` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-styles` input is `true` (default). |
+| `lint:types` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-types` input is `true`; the input defaults to `false`, so a consumer with TypeScript sources opts in. |
 | `changelog:validate` | composer | `reusable-release.yml` | Runs in every release build, before the production install. |
 
 ## Default names (input-overridable)

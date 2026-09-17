@@ -214,7 +214,7 @@ jobs:
 
 ## Scripts/Styles Lint — `.github/workflows/reusable-scripts-styles-lint.yml`
 
-Installs npm dependencies and conditionally runs the configured ESLint and Stylelint scripts.
+Installs npm dependencies and conditionally runs the configured ESLint, Stylelint, and TypeScript scripts.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -222,6 +222,7 @@ Installs npm dependencies and conditionally runs the configured ESLint and Style
 | `node-version` | `string` | No | `'26'` | Node.js version. |
 | `lint-scripts` | `boolean` | No | `true` | Whether to run `npm run lint:scripts` with ESLint. Set `false` for repositories without JavaScript sources. |
 | `lint-styles` | `boolean` | No | `true` | Whether to run `npm run lint:styles` with Stylelint. Set `false` for repositories without CSS sources. |
+| `lint-types` | `boolean` | No | `false` | Whether to run `npm run lint:types` with the TypeScript compiler. Set `true` for repositories with TypeScript sources. |
 
 ```yaml
 jobs:
