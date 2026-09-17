@@ -97,7 +97,32 @@ probes.push( [
 
 probes.push( [
 	'playwright.config.base.js',
-	() => require( resolve( 'node/playwright.config.base.js' ) ),
+	() => {
+		// The @wordpress/scripts base reads WP_BASE_URL and WP_ARTIFACTS_PATH once, while it is
+		// being required, so the factory sets them first. Asserting the derived values holds that
+		// ordering in place: a require at module scope silently pins every consumer to port 8889.
+		const config = require( resolve( 'node/playwright.config.base.js' ) )( {
+			port: 9999,
+		} );
+		if ( ! config.use.baseURL.includes( '9999' ) ) {
+			throw new Error(
+				`port did not reach use.baseURL (got ${ config.use.baseURL })`
+			);
+		}
+		if ( '9999' !== config.webServer.port ) {
+			throw new Error(
+				`port did not reach webServer.port (got ${ config.webServer.port })`
+			);
+		}
+		if ( 'npm run wp-env:start' !== config.webServer.command ) {
+			throw new Error(
+				`webServer.command is ${ config.webServer.command }`
+			);
+		}
+		if ( ! config.outputDir.startsWith( 'tests/.cache/artifacts' ) ) {
+			throw new Error( `outputDir is ${ config.outputDir }` );
+		}
+	},
 ] );
 
 let failed = false;

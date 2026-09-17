@@ -25,12 +25,17 @@ Require an immutable release tag in the consuming project's `composer.json`:
   ],
   "require-dev": {
     "a8csp/configs": "v1.0.0",
-    "roave/security-advisories": "dev-latest"
+    "roave/security-advisories": "dev-latest",
+    "phpcompatibility/phpcompatibility-wp": "^3@alpha",
+    "phpcompatibility/php-compatibility": "^10@alpha",
+    "phpcompatibility/phpcompatibility-paragonie": "^2@alpha"
   }
 }
 ```
 
 The `roave/security-advisories` line is mandatory. This package requires `roave/security-advisories` so that no consumer can install a dependency version with a known security advisory. That package has no stable release, and Composer honors stability flags only in the root package, so under the default `minimum-stability` of `stable`, Composer refuses to install `a8csp/configs` without the root line.
+
+The three `phpcompatibility/*` lines are mandatory as well. The shared ruleset runs PHPCompatibilityWP, but this package deliberately does not pin those packages, because only the consumer can select the pre-release majors that sniff current PHP syntax. Without those root-side requirements Composer resolves the stable releases, whose sniffs do not cover current PHP syntax — the `testVersion` checks then pass vacuously.
 
 Reference the shared PHPCS ruleset from the consumer's `.phpcs.xml`:
 
@@ -69,7 +74,7 @@ The `package.json` exports map exposes these paths:
 | `@a8csp/configs/node/eslint.config.base.mjs` | `node/eslint.config.base.mjs` | Flat ESLint baseline using the WordPress recommended, unit-test, and Playwright configurations. |
 | `@a8csp/configs/node/stylelint.config.base.js` | `node/stylelint.config.base.js` | Stylelint baseline extending the WordPress SCSS config and defining shared ignored files. |
 | `@a8csp/configs/node/postcss.config.base.js` | `node/postcss.config.base.js` | PostCSS baseline wiring the WordPress plugin preset for compiled-CSS post-processing. |
-| `@a8csp/configs/node/playwright.config.base.js` | `node/playwright.config.base.js` | Playwright baseline extending the WordPress Scripts config and using `tests/EndToEnd` as the test directory. |
+| `@a8csp/configs/node/playwright.config.base.js` | `node/playwright.config.base.js` | Playwright baseline factory. Called with `{ port }` — the port the consumer's `.wp-env.json` serves on — it returns the WordPress Scripts config with `tests/EndToEnd` as the test directory, the wp-env base URL and artifacts path set, and `npm run wp-env:start` as the web-server command. |
 | `@a8csp/configs/node/tsconfig.base.json` | `node/tsconfig.base.json` | TypeScript baseline for JSX, isolated modules, JSON modules, control-flow checks, and no-emit type checking. |
 
 Import or require the JavaScript configs by their export paths, and use the TypeScript export path in a consumer config's `extends` field.
