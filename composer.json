@@ -16,13 +16,13 @@
     "ext-json": "*",
 
     "wp-coding-standards/wpcs": "^3",
-    "phpcompatibility/phpcompatibility-wp": "*",
+    "phpcompatibility/phpcompatibility-wp": "^2 || ^3",
 
     "phpstan/phpstan": "^2",
     "phpstan/extension-installer": "^1",
     "phpstan/phpstan-deprecation-rules": "^2",
     "phpstan/phpstan-strict-rules": "^2",
-    "php-stubs/wordpress-stubs": "*",
+    "php-stubs/wordpress-stubs": "^7",
     "johnbillion/wp-compat": "^2",
     "szepeviktor/phpstan-wordpress": "^2",
     "swissspidy/phpstan-no-private": "^1",
