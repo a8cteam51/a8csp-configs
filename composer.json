@@ -31,7 +31,11 @@
   },
   "require-dev": {
     "composer/composer": "^2",
-    "phpunit/phpunit": "^13"
+    "phpunit/phpunit": "^13",
+
+    "phpcompatibility/phpcompatibility-wp": "^3@alpha",
+    "phpcompatibility/php-compatibility": "^10@alpha",
+    "phpcompatibility/phpcompatibility-paragonie": "^2@alpha"
   },
   "autoload-dev": {
     "psr-4": {

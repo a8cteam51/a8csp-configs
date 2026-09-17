@@ -101,6 +101,23 @@ jobs:
           vendor/bin/phpcs -v --standard=php/quality-assurance/phpcs.tests.dist.xml "$RUNNER_TEMP/consumer/tests" | tee phpcs-tests-scan.log
           ! grep -qF '(0 files in queue)' phpcs-tests-scan.log
 
+      # PHPCompatibility is unpinned here and in every consumer, so a resolution to the stable
+      # releases silently drops the sniffs that cover current PHP syntax and every testVersion
+      # check passes against nothing. The fixture is deprecated by construction, so the two
+      # PHPCompatibility sniff codes must both appear; matching the codes rather than the message
+      # is what makes this a detector, because Generic.PHP.DeprecatedFunctions reports
+      # utf8_encode() under either resolution.
+      - name: Assert the PHPCompatibility sniffs are not vacuous
+        shell: bash
+        run: |
+          set -e -o pipefail
+          cp -R tests/fixtures/php-compat "$RUNNER_TEMP/php-compat"
+          # CSV keeps sniff codes on one unwrapped field; a reported fixture exits non-zero, so the greps are the gate.
+          vendor/bin/phpcs -q --no-colors --report=csv --standard=php/quality-assurance/phpcs.dist.xml "$RUNNER_TEMP/php-compat" > phpcs-compat.csv || true
+          cat phpcs-compat.csv
+          grep -qF 'PHPCompatibility.TextStrings.RemovedDollarBraceStringEmbeds.DeprecatedVariableSyntax' phpcs-compat.csv
+          grep -qF 'PHPCompatibility.FunctionUse.RemovedFunctions.utf8_encodeDeprecated' phpcs-compat.csv
+
   phpstan-smoke:
     name: PHPStan dist-file smoke test
     runs-on: ubuntu-latest
