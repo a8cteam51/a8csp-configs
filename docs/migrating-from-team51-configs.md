@@ -2,6 +2,12 @@
 
 This guide is for a consumer that currently requires `a8cteam51/team51-configs` and is switching to `a8csp/configs`.
 
+## When to migrate
+
+`a8cteam51/team51-configs` is frozen: it receives no further changes, and a project that requires it keeps working as it is. Migrate a project when it next gets real work.
+
+A migrated project can keep its own PHP and WordPress floors, as [Version floors](#version-floors) describes. Its development and CI tooling, however, run on the PHP version this package requires (see [Supported floors](../README.md#supported-floors)).
+
 ## Composer package
 
 Replace the `a8cteam51/team51-configs` entry in the appropriate `composer.json` requirement section with `a8csp/configs`, pinned to an immutable semantic-version tag.

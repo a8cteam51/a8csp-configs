@@ -1,6 +1,6 @@
 # Reusable workflows
 
-This document is the per-workflow `workflow_call` input reference for the reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#backwards-compatibility-contract) keep existing inputs stable until a major release; additional inputs must be optional and define a default.
+This document is the per-workflow `workflow_call` input reference for the reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#backwards-compatibility-contract) keep existing inputs stable until a major release, except that a [tool runtime move](../CONTRIBUTING.md#tool-runtimes) may raise a version input's default in a minor release; additional inputs must be optional and define a default.
 
 ## block.json Schema Check — `.github/workflows/reusable-block-json-check.yml`
 

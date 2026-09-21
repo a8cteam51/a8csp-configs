@@ -105,6 +105,23 @@ jobs:
           grep -qF 'PHPCompatibility.TextStrings.RemovedDollarBraceStringEmbeds.DeprecatedVariableSyntax' phpcs-compat.csv
           grep -qF 'PHPCompatibility.FunctionUse.RemovedFunctions.utf8_encodeDeprecated' phpcs-compat.csv
 
+      # A consumer not ready for a floor lowers it with --runtime-set, the only setting PHPCS ranks above an included ruleset's <config>.
+      - name: Assert --runtime-set lowers the shared floors
+        shell: bash
+        run: |
+          set -e -o pipefail
+          cp -R tests/fixtures/floor-opt-out "$RUNNER_TEMP/floor-opt-out"
+          # A reported fixture exits non-zero, so the report types checked below are the gate.
+          vendor/bin/phpcs -q --no-colors --report=csv --standard=php/quality-assurance/phpcs.dist.xml "$RUNNER_TEMP/floor-opt-out" > phpcs-floors-shared.csv || true
+          vendor/bin/phpcs -q --no-colors --report=csv --standard=php/quality-assurance/phpcs.dist.xml --runtime-set testVersion 8.3- --runtime-set minimum_wp_version 6.7 "$RUNNER_TEMP/floor-opt-out" > phpcs-floors-lowered.csv || true
+          cat phpcs-floors-shared.csv phpcs-floors-lowered.csv
+          # Type is the fourth CSV column and precedes the quoted message, so a comma split reads it reliably.
+          report_type() { awk -F, -v code="$1" 'index($0, code) { print $4 }' "$2"; }
+          [ -z "$(report_type NewFunctions.fpowFound phpcs-floors-shared.csv)" ] || { echo "::error::fpow() is reported at the shared PHP floor, so the fixture cannot show the floor moving"; exit 1; }
+          [ "$(report_type DeprecatedFunctions.seems_utf8Found phpcs-floors-shared.csv)" = error ] || { echo "::error::seems_utf8() is not an error at the shared WordPress floor, so the fixture cannot show the floor moving"; exit 1; }
+          [ "$(report_type NewFunctions.fpowFound phpcs-floors-lowered.csv)" = error ] || { echo "::error::--runtime-set testVersion did not lower the PHP floor"; exit 1; }
+          [ "$(report_type DeprecatedFunctions.seems_utf8Found phpcs-floors-lowered.csv)" = warning ] || { echo "::error::--runtime-set minimum_wp_version did not lower the WordPress floor"; exit 1; }
+
   phpstan-smoke:
     name: PHPStan dist-file smoke test
     runs-on: ubuntu-latest
