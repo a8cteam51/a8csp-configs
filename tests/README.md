@@ -31,8 +31,8 @@ in a real runtime.
 
 This repository's own CI runs five of its reusable workflows: block-json-check, codeql, phpunit,
 supply-chain-audit and workflow-checks. The other five (php-lint, php-syntax-check,
-playwright-e2e, release and scripts-styles-lint) get only actionlint and zizmor here, so a change to
-one of them first runs for real in a consumer's CI.
+playwright-e2e, release and scripts-styles-lint) get only static analysis here (actionlint, zizmor
+and CodeQL), so a change to one of them first runs for real in a consumer's CI.
 
 ## Fixtures
 
