@@ -18,6 +18,7 @@ input.
 | `lint:styles` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-styles` input is `true` (default). |
 | `lint:types` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-types` input is `true`; the input defaults to `false`, so a consumer with TypeScript sources opts in. |
 | `changelog:validate` | composer | `reusable-release.yml` | Runs in every release build, before the production install. |
+| `test:e2e` | npm | `reusable-playwright-e2e.yml` | Runs the Playwright suite once wp-env is up. |
 
 ## Default names (input-overridable)
 
@@ -27,8 +28,6 @@ matching the default avoids an unnecessary `with:` entry.
 | Script | Ecosystem | Workflow | Input |
 | --- | --- | --- | --- |
 | `test` | composer | `reusable-phpunit.yml` | `composer-script` |
-| `build` | npm | `reusable-playwright-e2e.yml` | `build-script` |
-| `test:e2e` | npm | `reusable-playwright-e2e.yml` | `playwright-script` |
 
 ## Convention (consumer-declared, not enforced by the workflow)
 

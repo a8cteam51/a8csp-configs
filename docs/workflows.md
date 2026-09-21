@@ -119,22 +119,15 @@ jobs:
 
 ## Playwright E2E — `.github/workflows/reusable-playwright-e2e.yml`
 
-Installs PHP and Node.js dependencies, builds assets when configured, runs Playwright against wp-env, and uploads a failure report.
+Installs PHP and Node.js dependencies, starts the project's `.wp-env.json` environment, runs `npm run test:e2e`, and uploads a failure report.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. `npm ci` requires `package.json` and `package-lock.json` there, declaring `@wordpress/env` — the workflow starts the environment with the project's own locked binary. |
-| `artifact-slug` | `string` | Yes | — | Label used in the uploaded failure-report artifact name. |
-| `php-version` | `string` | No | `'8.5'` | PHP version. |
 | `wp-version` | `string` | No | `''` | WordPress version tag. An empty value defers to the consumer's `.wp-env.json` `core` setting or wp-env's default stable version. |
 | `wp-env-core` | `string` | No | `''` | Full `WP_ENV_CORE` value. Overrides `wp-version` and accepts repository refs or ZIP URLs. |
-| `node-version` | `string` | No | `'26'` | Node.js version. |
-| `composer-options` | `string` | No | `'--prefer-dist --no-dev --ignore-platform-req=php+'` | Composer install options. Omit `--no-dev` when a development-mode scoping pipeline populates `dependencies/`. |
-| `build-script` | `string` | No | `'build'` | npm script that builds assets before wp-env starts. An empty value skips the build. |
-| `wp-env-config-file` | `string` | No | `''` | wp-env configuration path relative to `project-path`. An empty value uses `.wp-env.json`. |
-| `playwright-script` | `string` | No | `'test:e2e'` | npm script that runs the Playwright suite. |
 
-The workflow installs and caches Chromium, stops wp-env under `always()`, and uploads `playwright-report-<artifact-slug>` on failure. The required slug prevents artifact-name collisions between multiple E2E jobs in one workflow run.
+Composer dependencies are installed with development packages included. The workflow runs no build, so the suite exercises the build output committed at the tested commit. It installs and caches Chromium, stops wp-env under `always()`, and uploads the `playwright-report` artifact on failure.
 
 ```yaml
 jobs:
@@ -142,8 +135,6 @@ jobs:
     permissions:
       contents: read
     uses: a8cteam51/a8csp-configs/.github/workflows/reusable-playwright-e2e.yml@v1.0.0
-    with:
-      artifact-slug: primary
 ```
 
 ## Release — `.github/workflows/reusable-release.yml`
