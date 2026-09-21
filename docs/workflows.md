@@ -225,7 +225,7 @@ jobs:
 
 ## Supply-Chain Audit — `.github/workflows/reusable-supply-chain-audit.yml`
 
-Audits the committed `composer.lock` and `package-lock.json` as two independently gated jobs, without installing anything, so the audit never executes the dependencies it vets.
+Audits the committed `composer.lock` and `package-lock.json` in two parallel jobs that always run, without installing anything, so the audit never executes the dependencies it vets.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
