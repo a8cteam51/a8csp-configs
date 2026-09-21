@@ -8,5 +8,5 @@
 // New in PHP 8.4 and not polyfilled by WordPress, so PHPCompatibilityWP reports it only when testVersion starts below 8.4.
 $floor_probe_power = \fpow( 2.0, 3.0 );
 
-// Deprecated in WordPress 6.9: an error when minimum_wp_version is 6.9 or later, a warning below it.
+// Deprecated in WordPress 6.9: an error when minimum_wp_version is 7.0 or later, a warning at 6.9 and below.
 $floor_probe_utf8 = \seems_utf8( 'probe' );
