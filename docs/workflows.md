@@ -9,7 +9,6 @@ Finds `block.json` files under the project path and validates each one against t
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
-| `node-version` | `string` | No | `'26'` | Node.js version. |
 
 The workflow exits successfully with a message when it finds no `block.json` files. The search prunes `./node_modules` and `./vendor` under `project-path`.
 
