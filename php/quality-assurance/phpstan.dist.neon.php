@@ -3,10 +3,8 @@
 $config = array();
 $workingDirectory = getcwd();
 
-foreach ( array( 'dependencies' ) as $discoverDirectory ) {
-	if ( is_dir( $workingDirectory . '/' . $discoverDirectory ) ) {
-		$config['parameters']['scanDirectories'][] = $workingDirectory . '/' . $discoverDirectory;
-	}
+if ( is_dir( $workingDirectory . '/dependencies' ) ) {
+	$config['parameters']['scanDirectories'][] = $workingDirectory . '/dependencies';
 }
 
 foreach ( array( 'functions-bootstrap.php', 'functions.php', 'uninstall.php' ) as $analyzeFile ) {
