@@ -6,6 +6,8 @@ Open pull requests against `trunk`. Direct pushes to `trunk` are not permitted.
 
 ## Backwards-compatibility contract
 
+The contract covers everything a consumer references: the reusable workflow files and their `workflow_call` inputs, the PHP ruleset and config files, the `package.json` exports, the `prettier` alias to `wp-prettier` that consumers resolve through this package, and the script names under Fixed names and Default names in [the scripts contract](docs/scripts-contract.md).
+
 Each tagged release must be additive or strictly permissive relative to the preceding tag. Permitted changes include:
 
 - adding an optional `workflow_call` input with a default;
@@ -16,7 +18,9 @@ Each tagged release must be additive or strictly permissive relative to the prec
 The following breaking changes are not permitted as routine changes:
 
 - renaming or removing an existing `workflow_call` input;
-- removing a ruleset file; and
+- renaming or removing a reusable workflow file, a ruleset or config file, or a `package.json` export;
+- repointing or removing the `prettier` alias;
+- renaming a Fixed or Default script name; and
 - tightening a rule that a currently passing consumer relies on without providing an escape hatch.
 
 ### Version floors
