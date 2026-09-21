@@ -24,7 +24,7 @@ Require an immutable release tag in the consuming project's `composer.json`:
     { "type": "vcs", "url": "https://github.com/a8cteam51/a8csp-configs" }
   ],
   "require-dev": {
-    "a8csp/configs": "v1.0.0",
+    "a8csp/configs": "vX.Y.Z",
     "roave/security-advisories": "dev-latest",
     "phpcompatibility/phpcompatibility-wp": "^3@alpha",
     "phpcompatibility/php-compatibility": "^10@alpha",
@@ -88,7 +88,7 @@ A caller references a workflow from its own workflow file and pins the reference
 ```yaml
 jobs:
   phpunit:
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@vX.Y.Z
 ```
 
 ## Supported floors

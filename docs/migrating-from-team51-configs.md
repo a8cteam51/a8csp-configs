@@ -14,7 +14,7 @@ Update the existing `repositories` VCS entry, or add one, to point at `https://g
     { "type": "vcs", "url": "https://github.com/a8cteam51/a8csp-configs" }
   ],
   "require-dev": {
-    "a8csp/configs": "v1.0.0",
+    "a8csp/configs": "vX.Y.Z",
     "roave/security-advisories": "dev-latest"
   }
 }
@@ -90,7 +90,7 @@ PHPMD is not part of this package. A consumer that still uses PHPMD must keep re
 Migrating to `a8csp-configs` adds access to reusable workflows, which `team51-configs` did not provide. Add a `uses:` reference to the consumer's own workflow files for each reusable workflow it needs:
 
 ```yaml
-uses: a8cteam51/a8csp-configs/.github/workflows/<workflow-file>.yml@v1.0.0
+uses: a8cteam51/a8csp-configs/.github/workflows/<workflow-file>.yml@vX.Y.Z
 ```
 
 Do not reference `trunk` from a production consumer.

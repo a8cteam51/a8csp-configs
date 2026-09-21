@@ -17,7 +17,7 @@ jobs:
   block-json:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-block-json-check.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-block-json-check.yml@vX.Y.Z
 ```
 
 ## CodeQL — `.github/workflows/reusable-codeql.yml`
@@ -39,7 +39,7 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-codeql.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-codeql.yml@vX.Y.Z
     with:
       languages: '["actions", "javascript-typescript"]'
 ```
@@ -60,7 +60,7 @@ jobs:
   php-lint:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-lint.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-lint.yml@vX.Y.Z
     with:
       scripts: '["lint:php:phpcs", "lint:php:phpcs:tests", "lint:php:phpstan"]'
 ```
@@ -81,7 +81,7 @@ jobs:
   php-syntax:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-syntax-check.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-syntax-check.yml@vX.Y.Z
 ```
 
 ## PHPUnit — `.github/workflows/reusable-phpunit.yml`
@@ -108,7 +108,7 @@ jobs:
   phpunit:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@vX.Y.Z
 ```
 
 ## Playwright E2E — `.github/workflows/reusable-playwright-e2e.yml`
@@ -128,7 +128,7 @@ jobs:
   playwright:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-playwright-e2e.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-playwright-e2e.yml@vX.Y.Z
 ```
 
 ## Release — `.github/workflows/reusable-release.yml`
@@ -165,7 +165,7 @@ jobs:
     permissions:
       actions: read
       contents: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release.yml@vX.Y.Z
     with:
       plugin-slug: ${{ github.event.repository.name }}
       php-version: '8.5'
@@ -185,7 +185,7 @@ jobs:
   scripts-styles:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-scripts-styles-lint.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-scripts-styles-lint.yml@vX.Y.Z
 ```
 
 ## Supply-Chain Audit — `.github/workflows/reusable-supply-chain-audit.yml`
@@ -204,7 +204,7 @@ jobs:
   supply-chain:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-supply-chain-audit.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-supply-chain-audit.yml@vX.Y.Z
 ```
 
 ## Workflow Checks — `.github/workflows/reusable-workflow-checks.yml`
@@ -226,5 +226,5 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-workflow-checks.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-workflow-checks.yml@vX.Y.Z
 ```
