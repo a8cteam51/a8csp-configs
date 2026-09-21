@@ -47,4 +47,4 @@ This package uses real semantic-version Git tags in the form `vX.Y.Z`. A maintai
 
 - **PATCH**: bug fixes and non-behavioral or documentation fixes.
 - **MINOR**: additive or permissive changes, including a new optional input, a new ruleset or file, a new opt-in rule, or a loosened rule.
-- **MAJOR**: the sanctioned version-floor-raise path, or a breaking input rename or removal that has received a major-version discussion.
+- **MAJOR**: the sanctioned version-floor-raise path, or a breaking input rename or removal that went through a major-version discussion before implementation.

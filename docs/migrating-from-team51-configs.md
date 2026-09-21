@@ -79,7 +79,7 @@ parameters:
 
 Migration raises the configured floors to PHP 8.5 and WordPress 7.1 through the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.base.dist.xml`, which both the production and tests rulesets include.
 
-A consumer that is not ready for either floor must opt out per repository with `--runtime-set` in its own PHPCS CLI invocation, typically in its `composer.json` lint script. A consuming ruleset's `<config>` elements cannot override an included ruleset's already-set `<config>` values, regardless of declaration order. Only `--runtime-set` has precedence over ruleset-level configuration.
+A consumer that is not ready for either floor opts out per repository with `--runtime-set` in its own PHPCS CLI invocation, typically in its `composer.json` lint script; [CONTRIBUTING](../CONTRIBUTING.md#version-floors) explains why a ruleset `<config>` cannot.
 
 ## PHPMD
 
