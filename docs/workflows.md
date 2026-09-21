@@ -73,7 +73,7 @@ Runs `php -l` over every PHP file under the project path for each configured PHP
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
-| `php-versions` | `string` | No | `'["8.5"]'` | Non-empty JSON array of PHP versions to check, such as `["8.5","8.6"]`. |
+| `php-versions` | `string` | No | `'["8.5","8.6"]'` | Non-empty JSON array of PHP versions to check. |
 
 An empty `php-versions` array fails validation. The file search prunes `./vendor` and `./node_modules` under `project-path`.
 
@@ -83,8 +83,6 @@ jobs:
     permissions:
       contents: read
     uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-syntax-check.yml@v1.0.0
-    with:
-      php-versions: '["8.5", "8.6"]'
 ```
 
 ## PHPUnit — `.github/workflows/reusable-phpunit.yml`

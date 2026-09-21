@@ -9,10 +9,10 @@ on:
         required: false
         default: '.'
       php-versions:
-        description: 'Non-empty JSON array of PHP versions to check (e.g. [\"8.5\",\"8.6\"])'
+        description: 'Non-empty JSON array of PHP versions to check.'
         type: string
         required: false
-        default: '["8.5"]'
+        default: '["8.5","8.6"]'
 
 permissions:
   contents: read
