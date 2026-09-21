@@ -93,8 +93,7 @@ jobs:
           vendor/bin/phpcs -v --standard=php/quality-assurance/phpcs.tests.dist.xml "$RUNNER_TEMP/consumer/tests" | tee phpcs-tests-scan.log
           ! grep -qF '(0 files in queue)' phpcs-tests-scan.log
 
-      # A resolution to the stable PHPCompatibility releases lacks the current-PHP sniffs, so testVersion
-      # passes vacuously. The fixture must draw both PHPCompatibility codes (Generic reports utf8_encode() either way).
+      # Stable PHPCompatibility releases lack the current-PHP sniffs; only the pre-release codes prove them present.
       - name: Assert the PHPCompatibility sniffs are not vacuous
         shell: bash
         run: |

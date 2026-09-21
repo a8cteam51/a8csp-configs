@@ -215,7 +215,7 @@ Runs Actionlint and Zizmor static analysis against `.github/workflows/**`.
 | --- | --- | --- | --- | --- |
 | `zizmor-inputs` | `string` | No | `'.'` | The path zizmor audits. Narrow it for consumers that must exclude vendored third-party workflow files. |
 
-The caller must grant `contents: read`, `security-events: write`, and `actions: read`, as shown below; granting less than the called jobs declare causes the workflow call to fail at startup.
+The caller grants `contents: read`, `security-events: write`, and `actions: read`, as shown below; a caller must grant every permission the called jobs declare, or the call fails at startup.
 
 A `detect-ghas` probe picks the zizmor mode; actionlint and zizmor always run. With GitHub Advanced Security, zizmor uploads SARIF to the Security tab and a finding-count gate fails the job; without it, zizmor runs in native mode and fails the job itself, with inline annotations. Both modes fail on any finding.
 
