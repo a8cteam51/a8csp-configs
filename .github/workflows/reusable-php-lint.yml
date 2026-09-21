@@ -32,8 +32,6 @@ jobs:
             exit 1
           fi
 
-  # The install step below only warns about a lock that no longer matches composer.json and carries
-  # on, so without this job a stale lock stays green.
   composer-validate:
     name: composer validate
     runs-on: ubuntu-latest

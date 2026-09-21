@@ -35,7 +35,7 @@ Require an immutable release tag in the consuming project's `composer.json`:
 
 The `roave/security-advisories` line is mandatory. This package requires `roave/security-advisories` so that no consumer can install a dependency version with a known security advisory. That package has no stable release, and Composer honors stability flags only in the root package, so under the default `minimum-stability` of `stable`, Composer refuses to install `a8csp/configs` without the root line.
 
-The three `phpcompatibility/*` lines are mandatory as well. The shared ruleset runs PHPCompatibilityWP, but this package deliberately does not pin those packages, because only the consumer can select the pre-release majors that sniff current PHP syntax. Without those root-side requirements Composer resolves the stable releases, whose sniffs do not cover current PHP syntax — the `testVersion` checks then pass vacuously.
+The three `phpcompatibility/*` lines are mandatory as well. The shared ruleset runs PHPCompatibilityWP, and this package accepts either the stable or the pre-release majors of those packages, because only the consumer's root requirements can select the pre-release majors that sniff current PHP syntax. Without those root-side requirements Composer resolves the stable releases, whose sniffs do not cover current PHP syntax — the `testVersion` checks then pass vacuously.
 
 Reference the shared PHPCS ruleset from the consumer's `.phpcs.xml`:
 

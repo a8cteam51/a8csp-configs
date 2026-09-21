@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       project-path:
-        description: 'Path to the project (relative to repo root). npm ci runs here, so package.json and a package-lock.json declaring @wordpress/env must be present — the workflow runs the wp-env the lockfile pins.'
+        description: 'Path to the project (relative to repo root).'
         type: string
         required: false
         default: '.'
@@ -29,9 +29,8 @@ jobs:
     permissions:
       contents: read
     env:
-      # Job-level, so a consumer script that starts wp-env again runs the same WordPress as the start step.
-      # Override priority: wp-env-core (full value) > wp-version (formatted as tag). Both empty leaves
-      # WP_ENV_CORE empty, and wp-env falls back to the config file's `core` setting.
+      # Job-level, so a consumer script that starts wp-env again gets the same WordPress. wp-env-core wins
+      # over wp-version; both empty leaves WP_ENV_CORE empty, which defers to the config's `core`.
       WP_ENV_CORE: ${{ inputs.wp-env-core != '' && inputs.wp-env-core || (inputs.wp-version != '' && format('WordPress/WordPress#tags/{0}', inputs.wp-version)) || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -62,8 +61,6 @@ jobs:
         working-directory: ${{ inputs.project-path }}
         run: |
           npm ci
-          # The project's own wp-env drives the environment below, so CI runs the version its
-          # lockfile pins — and `npm ci` cannot conjure a package the project does not declare.
           if [ ! -x ./node_modules/.bin/wp-env ]; then
             echo "::error::@wordpress/env is not installed in this project — add it to devDependencies. This workflow runs the version the project's lockfile pins."
             exit 1

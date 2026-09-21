@@ -26,7 +26,7 @@ Composer honors stability flags only in the root package, and two root requireme
 
 The `roave/security-advisories` line above is mandatory. This package requires `roave/security-advisories` so that no consumer can install a dependency version with a known security advisory, and because that package has no stable release, Composer refuses to install `a8csp/configs` without the root line under the default `minimum-stability` of `stable`.
 
-The shared ruleset runs PHPCompatibilityWP, but this package deliberately does not pin the PHPCompatibility packages, because only the consumer can select the pre-release majors that sniff current PHP syntax. Require them alongside the package:
+The shared ruleset runs PHPCompatibilityWP, and this package accepts either the stable or the pre-release majors of the PHPCompatibility packages, because only the consumer's root requirements can select the pre-release majors that sniff current PHP syntax. Require them alongside the package:
 
 ```json
 {
@@ -77,7 +77,7 @@ parameters:
 
 ## Version floors
 
-Migration raises the configured floors to PHP 8.5 and WordPress 7.1 through the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.base.dist.xml`, which both the production and tests rulesets include.
+Migration raises the configured floors to the [supported floors](../README.md#supported-floors) through the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.base.dist.xml`, which both the production and tests rulesets include.
 
 A consumer that is not ready for either floor opts out per repository as [CONTRIBUTING](../CONTRIBUTING.md#version-floors) describes.
 

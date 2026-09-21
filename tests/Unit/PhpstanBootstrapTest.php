@@ -6,9 +6,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests for the discovery logic in `php/quality-assurance/phpstan.dist.neon.php`.
- * The file is procedural — uses `getcwd()` as its project root — so tests `chdir` to a
- * fixture directory, `require` the file, and assert on the returned config array.
+ * Tests for the discovery logic in `php/quality-assurance/phpstan.dist.neon.php`, which reads
+ * `getcwd()` as the project root.
  */
 final class PhpstanBootstrapTest extends TestCase {
 

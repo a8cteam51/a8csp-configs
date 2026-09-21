@@ -1,5 +1,5 @@
 name: Release
-# The release path only executes on a tag, so every defect in it is found during a release; it lives here so a fix is made once. Callers must grant the union of the permissions the jobs below declare — contents: write and actions: read — or the call fails at startup, which does not appear as a failed check.
+# Callers grant `contents: write` and `actions: read`; a caller must grant every permission the called jobs declare, or the call fails at startup.
 
 on:
   workflow_call:
@@ -46,7 +46,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # Tagging before composer changelog:write leaves the materialized release version out of sync, and the self-updater compares an installed plugin against the header rather than against the tag.
       - name: Require the tag, plugin header, package, and changelog to agree
         env:
           ENTRY_FILE: ${{ inputs.entry-file }}
@@ -61,7 +60,6 @@ jobs:
           package_version=$(jq -r .version package.json)
           changelog_version=$(grep -m 1 '^## ' CHANGELOG.md | sed -E 's/^## \[?([^] ]+)\]? - .*/\1/' || true)
 
-          # A dispatch run has no tag to agree with, so the three declared versions are still held to each other — that drift is what a release would carry regardless of which tag pointed at it.
           tag_version=""
           if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
             tag_version="${TAG#v}"
@@ -148,35 +146,22 @@ jobs:
           printf '%s' '{"name":"a8csp/release-tools","require":{}}' > "$RUNNER_TEMP/release-tools/composer.json"
           composer require --no-interaction --working-dir="$RUNNER_TEMP/release-tools" \
             wp-cli/dist-archive-command:3.1.0
-      # Regenerating the committed POT prevents source changes from shipping stale strings.
-      #
-      # This step runs wp-cli's bundled i18n-command and must not load the release-tools autoloader: a
-      # second copy of i18n-command resolves its classes from both sources at once, and the version skew
-      # between them breaks plugin-header detection with no error — make-pot then treats the plugin as an
-      # unlabeled generic project, dropping the header strings and writing the POT to the package root
-      # instead of the Domain Path. The assertions below are what make that failure loud.
+      # Only wp-cli's bundled i18n-command may run here: with the release-tools autoloader loaded too, two copies silently break plugin-header detection, which the assertions below catch.
       - name: Generate translation template
         env:
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
         run: |
-          # A committed POT is a copy of an input rather than a fact and would satisfy the assertions below
-          # on its own, so clearing every copy first is what makes them evidence about this run. Excluding
-          # the dependency trees keeps a bundled package's own template out of both this and the count.
+          # Clearing every committed copy first makes the assertions below evidence about this run.
           find . -name "$PLUGIN_SLUG.pot" -not -path './vendor/*' -not -path './node_modules/*' -delete
           wp i18n make-pot ./ --slug="$PLUGIN_SLUG"
 
-          # A plugin-mode run writes to the plugin's own Domain Path, so proving the mode proves the
-          # placement, and neither this workflow nor a consumer has to name a translations directory.
           mapfile -t pots < <( find . -name "$PLUGIN_SLUG.pot" -not -path './vendor/*' -not -path './node_modules/*' )
           if [ "${#pots[@]}" -ne 1 ]; then
             echo "::error::make-pot produced ${#pots[@]} copies of $PLUGIN_SLUG.pot, and the archive carries exactly one: ${pots[*]}" >&2
             exit 1
           fi
 
-          # Falling back to generic-project mode still reports success and still writes a POT — one that
-          # ignores Domain Path and drops the plugin metadata. make-pot names the package only once it has
-          # read a plugin header, so this standard PO field carries the mode without depending on the
-          # wording of the translator comments alongside it, which are wp-cli's own prose.
+          # A generic-project fallback also succeeds and writes a POT; only plugin mode fills Project-Id-Version.
           package=$( sed -n 's/^"Project-Id-Version: \(.*\)\\n"$/\1/p' "${pots[0]}" )
           if [ -z "$package" ]; then
             echo "::error::${pots[0]} names no package in Project-Id-Version, so make-pot recognized no plugin and fell back to generic-project mode. Check that i18n-command is loaded once." >&2
@@ -196,7 +181,7 @@ jobs:
           path: ./${{ inputs.plugin-slug }}.zip
           retention-days: 1
 
-  # The release artifact differs materially from the tested tree (production dependencies, a regenerated POT, .distignore filtering), so it gets installed and activated once before publishing.
+  # The artifact differs from the tested tree (production dependencies, a regenerated POT, .distignore filtering), so it is installed and activated once before publishing.
   smoke:
     name: Smoke test the artifact
     needs: build
@@ -205,10 +190,7 @@ jobs:
     permissions:
       actions: read
     env:
-      # The only wp-env version this repository chooses. The other workflows run the consumer's own
-      # locked binary, which this job has none of: it smoke-tests a downloaded artifact in a directory
-      # with no checkout and no package.json, so an explicit version is the only thing available. Nothing
-      # bumps it automatically — an npx-inline version is invisible to dependabot.
+      # With no checkout there is no locked wp-env to run, so this job pins its own; Dependabot cannot see it.
       WP_ENV_VERSION: '11.15.0'
     steps:
       - name: Download the release artifact
@@ -217,9 +199,7 @@ jobs:
           name: release-zip
           path: smoke
 
-      # wp-env installs and activates every listed plugin during start, so a zip whose tree
-      # is broken (missing autoloader, filtered-out runtime file, activation fatal) fails here.
-      # wp-env resolves a plugin source three ways: an absolute or ./-prefixed path as a local directory, an http(s) .zip as a download, and anything else as a GitHub owner/repo — a local archive matches none of them, so the artifact is unpacked and the directory it produces is named absolutely.
+      # wp-env takes a local plugin only as a directory path, so the zip is unpacked and named absolutely; a broken tree or an activation fatal then fails the start.
       - name: Write the smoke wp-env config
         env:
           EXTRA_PLUGINS: ${{ inputs.extra-plugins }}
@@ -237,8 +217,7 @@ jobs:
             echo "::error::the artifact does not unpack to a $PLUGIN_SLUG directory; check the --plugin-dirname the build passes to wp dist-archive."
             exit 1
           fi
-          # A declared PHP floor above wp-env's default makes WordPress refuse activation, which reads as a broken artifact rather than an environment that cannot host it.
-          # One environment is enough to install and activate the artifact; the tests environment would install everything a second time.
+          # WordPress refuses to activate a plugin whose Requires PHP exceeds the environment's; one environment is enough.
           jq -n --arg plugin "$plugin_dir" --arg php "$PHP_VERSION" --argjson extra "$EXTRA_PLUGINS" \
             '{ plugins: ( $extra + [$plugin] ), phpVersion: $php, testsEnvironment: false }' > .wp-env.json
           cat .wp-env.json
@@ -286,7 +265,6 @@ jobs:
     permissions:
       contents: write
     steps:
-      # Checked out for CHANGELOG.md alone; the archive lands outside the tree, so no committed file can stand in for it.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -295,7 +273,6 @@ jobs:
         with:
           name: release-zip
           path: ${{ runner.temp }}/release
-      # The release describes what changed, which the changelog already states; generated notes replace that with every merged pull request since the repository began, dependency bumps included.
       - name: Collect the release notes
         run: |
           version="${GITHUB_REF_NAME#v}"
@@ -313,9 +290,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PLUGIN_SLUG: ${{ inputs.plugin-slug }}
         run: |
-          # The job takes only the artifact and the changelog, so gh is told which repository to release in, and hyphenated SemVer tags must stay off the stable updater's latest-release endpoint.
+          args=(--repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag)
+          # A hyphenated SemVer tag is a prerelease and must not become the latest release.
           if [[ "$GITHUB_REF_NAME" == *-* ]]; then
-            gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/release/$PLUGIN_SLUG.zip" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag --prerelease --latest=false
-          else
-            gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/release/$PLUGIN_SLUG.zip" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/release-notes.md" --verify-tag
+            args+=(--prerelease --latest=false)
           fi
+          gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/release/$PLUGIN_SLUG.zip" "${args[@]}"

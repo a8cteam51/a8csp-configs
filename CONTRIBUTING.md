@@ -39,7 +39,7 @@ Changes under `.github/workflows/**` must pass actionlint and zizmor through `.g
 
 ## Consumer validation
 
-Before merging a change under `php/quality-assurance/`, run the changed configuration against a real consumer repository rather than relying only on diff review. Use `a8cteam51/a8csp-plugin-template` as the reference consumer.
+Before merging a change under `php/quality-assurance/`, run the changed configuration against a real consumer repository rather than relying only on diff review. Use the plugin and site templates, `a8cteam51/a8csp-plugin-template` and `a8cteam51/a8csp-project-template`, as reference consumers.
 
 ## Versioning
 

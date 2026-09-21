@@ -18,13 +18,9 @@ permissions: {}
 
 jobs:
   workflow-checks:
+    # A caller must grant every permission the called jobs declare, or the call fails at startup.
     permissions:
       contents: read
-      # zizmor's SARIF upload in the called workflow needs this — a reusable
-      # workflow can never escalate beyond what this job grants.
       security-events: write
-      # The called workflow's zizmor job also requests `actions: read` (to scan
-      # workflow metadata) — omitting it here makes the whole reusable-workflow
-      # call invalid and aborts the run before any job starts.
       actions: read
     uses: ./.github/workflows/reusable-workflow-checks.yml

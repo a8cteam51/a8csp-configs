@@ -3,9 +3,7 @@
 This document names the composer and npm script identifiers the reusable workflows and shared
 configs in this repository treat as their interface. A consuming project's `composer.json` and
 `package.json` scripts must use these names for the corresponding workflow or config to find and
-run them. It also
-lists the files the release workflow reads from the consumer's tree, the names the fleet shares by
-convention alone, and the PHPUnit configuration every repository copies.
+run them.
 
 ## Fixed names
 
@@ -73,16 +71,15 @@ The file is named `phpunit.dist.xml` and carries at least these attributes on th
 | Attribute | Value | Purpose |
 | --- | --- | --- |
 | `failOnWarning` | `true` | A warning ends the run rather than scrolling past in a green report. |
-| `failOnRisky` | `true` | A test that asserts nothing or leaves state behind ends the run. |
+| `failOnRisky` | `true` | A risky test ends the run. |
 | `failOnNotice` | `true` | A notice ends the run. |
 | `beStrictAboutOutputDuringTests` | `true` | Output from the code under test marks the test risky, which `failOnRisky` then turns into a failure. |
 | `colors` | `true` | Readable output locally and in the Actions log. |
 | `cacheDirectory` | `tests/.cache/phpunit` | Keeps the result cache beside the other tool caches instead of in the repository root. |
 
-`executionOrder` is `depends,defects,random`. A repository that needs a different order states the
-reason in a comment beside the attribute. `resolveDependencies` is a separate attribute defaulting
-to `true`, so `random` still honors `#[Depends]`; running defects first keeps the local feedback
-loop short, and randomizing the rest surfaces tests that pass only in a particular order.
+`executionOrder` is `depends,defects,random`: defects first keeps the local feedback loop short, and
+randomizing the rest surfaces tests that pass only in a particular order. A repository that needs a
+different order states the reason in a comment beside the attribute.
 
 ## Release
 

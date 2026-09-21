@@ -32,7 +32,6 @@ jobs:
       - name: Validate block.json files against the WordPress schema
         working-directory: ${{ inputs.project-path }}
         run: |
-          # Validate one file per -d invocation; a single joined string breaks multi-block plugins.
           mapfile -d '' files < <(find . -path ./node_modules -prune -o -path ./vendor -prune -o -name 'block.json' -print0)
           if [ "${#files[@]}" -eq 0 ]; then
             echo "No block.json files found — nothing to validate."

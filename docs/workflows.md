@@ -28,9 +28,9 @@ Runs GitHub CodeQL initialization and analysis as one matrix job per configured 
 | --- | --- | --- | --- | --- |
 | `languages` | `string` | No | `'["actions"]'` | Non-empty JSON array of CodeQL languages. |
 
-An empty `languages` array fails validation instead of producing an empty successful matrix. CodeQL has no PHP analyzer, so PHP is outside this workflow; PHPStan provides static analysis for PHP.
+An empty `languages` array fails validation. CodeQL has no PHP analyzer; PHPStan covers PHP.
 
-A `detect-ghas` job probes `code-scanning/alerts` before `analyze` runs. When GitHub Advanced Security is unavailable — the expected state for a private repository without the paid feature — `analyze` is skipped with an `::notice` instead of failing; a public repository always has GHAS available, so `analyze` always runs there. Detection needs only `security-events: read`, already covered by the `security-events: write` this workflow requires.
+A `detect-ghas` job probes `code-scanning/alerts` first. Without GitHub Advanced Security, the usual state of a private repository, `analyze` is skipped with a notice; a public repository always has it.
 
 ```yaml
 jobs:
@@ -99,7 +99,7 @@ Installs Composer dependencies, optionally starts a WordPress environment, runs 
 | `wp-env-xdebug` | `string` | No | `''` | Value passed to `wp-env start --xdebug=<mode>`, such as `coverage`. An empty value starts without Xdebug. |
 | `needs-wp-env` | `boolean` | No | `true` | Whether to run `npm ci` and start and stop wp-env. A caller with a unit-only suite must pass `false`; left at the default, the run fails unless the project declares `@wordpress/env`. |
 
-When `needs-wp-env` is `true`, the project must contain `package.json` and `package-lock.json`, and must declare `@wordpress/env`: the workflow starts the environment with the project's own `node_modules/.bin/wp-env`, so CI runs the version the lockfile pins rather than one this repository chose. A project without it fails with a named error rather than a missing-command exit. `wp-env-core` takes precedence over `wp-version`, and the stop step runs under `always()`.
+When `needs-wp-env` is `true`, the project must contain `package.json` and `package-lock.json` declaring `@wordpress/env`: the workflow starts the project's own locked wp-env and fails with a named error when it is missing. `wp-env-core` takes precedence over `wp-version`, and the stop step runs under `always()`.
 
 The resulting `WP_ENV_CORE` is set for the whole job, so a Composer script that starts wp-env itself gets the same WordPress as the workflow's own start.
 
@@ -217,7 +217,7 @@ Runs Actionlint and Zizmor static analysis against `.github/workflows/**`.
 
 The caller must grant `contents: read`, `security-events: write`, and `actions: read`, as shown below; granting less than the called jobs declare causes the workflow call to fail at startup.
 
-The same `detect-ghas` probe selects the zizmor job's mode: actionlint and the zizmor scan always run regardless of GHAS availability. With GHAS available, zizmor uploads SARIF to the Security tab and a finding-count gate blocks CI (Advanced Security mode never fails the job itself). Without GHAS, the same pinned action runs in native mode — zizmor's own exit code fails the job on any finding, with inline annotations instead of a Security-tab entry; the threshold is identical in both modes.
+A `detect-ghas` probe picks the zizmor mode; actionlint and zizmor always run. With GitHub Advanced Security, zizmor uploads SARIF to the Security tab and a finding-count gate fails the job; without it, zizmor runs in native mode and fails the job itself, with inline annotations. Both modes fail on any finding.
 
 ```yaml
 jobs:

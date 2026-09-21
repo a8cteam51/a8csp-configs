@@ -1,12 +1,8 @@
 #!/bin/sh
-# The composer script reusable-phpunit.yml runs against this fixture. It asserts what the workflow's
-# wp-env handling is responsible for, and nothing else: that the environment runs the WordPress the
-# caller asked for, including after a consumer script starts wp-env again, and that it serves this
-# project's tree.
-#
-# Every assertion runs inside the container and is read through the exit status. Nothing greps
-# wp-env's own output, which narrates the command it is about to run and therefore matches any
-# pattern taken from that command.
+# reusable-phpunit.yml runs this against the fixture. It asserts only what the workflow's wp-env
+# handling owns: the caller's WordPress, also after a consumer script starts wp-env again, and this
+# project's mapping. Assertions run inside the container and read exit statuses, because wp-env's
+# own output echoes the command it runs and would match any pattern taken from it.
 
 set -eu
 cd -- "$(dirname -- "$0")"
@@ -14,7 +10,7 @@ cd -- "$(dirname -- "$0")"
 # Kept level with the `wp-version` input quality.yml passes; the pair is the point of the assertion.
 EXPECTED_WP=6.9.4
 
-# The project's own binary, which is the whole subject of the coverage: the workflow starts this one.
+# The workflow starts the project's own locked binary, so the smoke uses it too.
 WP_ENV=./node_modules/.bin/wp-env
 
 # A consumer's test script may start wp-env itself. That start sees only the job's environment, so
