@@ -139,7 +139,7 @@ jobs:
 
       # phpstan.dist.neon includes phpstan.dist.neon.php, which discovers paths via getcwd(), so the
       # fixture (not the repo root) is cwd.
-      - name: Analyse fixture with php/quality-assurance/phpstan.dist.neon
+      - name: Analyze fixture with php/quality-assurance/phpstan.dist.neon
         working-directory: tests/fixtures/plugin-stub
         run: ../../../vendor/bin/phpstan analyse -c ../../../php/quality-assurance/phpstan.dist.neon --no-progress
 

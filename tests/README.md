@@ -11,7 +11,7 @@ in a real runtime.
   filesystem-fixture probe of the procedural discovery logic in
   `php/quality-assurance/phpstan.dist.neon.php`: it `chdir`s into a throwaway project directory,
   `require`s the file, and asserts on the returned config array. The target is a returns-array file
-  with no coverable named symbol, so its behaviour is proven by assertion rather than attributed
+  with no coverable named symbol, so its behavior is proven by assertion rather than attributed
   line coverage.
 - **wp-env consumer smoke** (`.github/workflows/quality.yml`, `tests/fixtures/wp-env-consumer/`) —
   the one tier that starts WordPress, and it does so to cover this repository's own workflow rather

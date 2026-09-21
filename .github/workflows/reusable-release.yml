@@ -103,7 +103,7 @@ jobs:
             --raw-field status=success \
             --field per_page=100 \
             --jq '.workflow_runs[] | select(.event == "push" and .conclusion == "success") | .path'); then
-            echo "::error::Unable to verify workflow runs for ${SHA}; rerun the release after the Actions API is available." >&2
+            echo "::error::unable to verify workflow runs for ${SHA}; rerun the release after the Actions API is available." >&2
             exit 1
           fi
 
@@ -115,7 +115,7 @@ jobs:
           done
 
           if (( ${#missing_workflows[@]} > 0 )); then
-            echo "::error::Missing successful workflow run(s) for ${SHA}: ${missing_workflows[*]}. The tagged SHA must be a commit whose Quality and Tests runs are green; re-tag after they pass." >&2
+            echo "::error::missing successful workflow run(s) for ${SHA}: ${missing_workflows[*]}. The tagged SHA must be a commit whose Quality and Tests runs are green; re-tag after they pass." >&2
             exit 1
           fi
 
@@ -153,7 +153,7 @@ jobs:
       # This step runs wp-cli's bundled i18n-command and must not load the release-tools autoloader: a
       # second copy of i18n-command resolves its classes from both sources at once, and the version skew
       # between them breaks plugin-header detection with no error — make-pot then treats the plugin as an
-      # unlabelled generic project, dropping the header strings and writing the POT to the package root
+      # unlabeled generic project, dropping the header strings and writing the POT to the package root
       # instead of the Domain Path. The assertions below are what make that failure loud.
       - name: Generate translation template
         env:
@@ -179,7 +179,7 @@ jobs:
           # wording of the translator comments alongside it, which are wp-cli's own prose.
           package=$( sed -n 's/^"Project-Id-Version: \(.*\)\\n"$/\1/p' "${pots[0]}" )
           if [ -z "$package" ]; then
-            echo "::error::${pots[0]} names no package in Project-Id-Version, so make-pot recognised no plugin and fell back to generic-project mode. Check that i18n-command is loaded once." >&2
+            echo "::error::${pots[0]} names no package in Project-Id-Version, so make-pot recognized no plugin and fell back to generic-project mode. Check that i18n-command is loaded once." >&2
             exit 1
           fi
 
@@ -228,13 +228,13 @@ jobs:
         run: |
           zip_file="smoke/$PLUGIN_SLUG.zip"
           if [ ! -f "$zip_file" ]; then
-            echo "::error::The downloaded artifact has no $PLUGIN_SLUG.zip — nothing to smoke test."
+            echo "::error::the downloaded artifact has no $PLUGIN_SLUG.zip — nothing to smoke test."
             exit 1
           fi
           unzip -q "$zip_file" -d smoke/unpacked
           plugin_dir="$PWD/smoke/unpacked/$PLUGIN_SLUG"
           if [ ! -d "$plugin_dir" ]; then
-            echo "::error::The artifact does not unpack to a $PLUGIN_SLUG directory; check the --plugin-dirname the build passes to wp dist-archive."
+            echo "::error::the artifact does not unpack to a $PLUGIN_SLUG directory; check the --plugin-dirname the build passes to wp dist-archive."
             exit 1
           fi
           # A declared PHP floor above wp-env's default makes WordPress refuse activation, which reads as a broken artifact rather than an environment that cannot host it.
