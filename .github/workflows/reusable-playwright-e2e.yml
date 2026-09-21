@@ -27,6 +27,11 @@ jobs:
     name: Playwright E2E
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Job-level, so a consumer script that starts wp-env again runs the same WordPress as the start step.
+      # Override priority: wp-env-core (full value) > wp-version (formatted as tag). Both empty leaves
+      # WP_ENV_CORE empty, and wp-env falls back to the config file's `core` setting.
+      WP_ENV_CORE: ${{ inputs.wp-env-core != '' && inputs.wp-env-core || (inputs.wp-version != '' && format('WordPress/WordPress#tags/{0}', inputs.wp-version)) || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -80,11 +85,6 @@ jobs:
 
       - name: Start wp-env
         working-directory: ${{ inputs.project-path }}
-        env:
-          # Override priority: wp-env-core (full value) > wp-version (formatted as tag).
-          # If both empty, WP_ENV_CORE is empty and wp-env falls back to the consumer's
-          # config file `core` setting.
-          WP_ENV_CORE: ${{ inputs.wp-env-core != '' && inputs.wp-env-core || (inputs.wp-version != '' && format('WordPress/WordPress#tags/{0}', inputs.wp-version)) || '' }}
         run: ./node_modules/.bin/wp-env start
 
       - name: Run Playwright tests

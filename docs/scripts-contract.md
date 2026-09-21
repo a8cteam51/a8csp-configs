@@ -64,19 +64,6 @@ Default names are the ones a workflow resolves.
 
 ## Consumer obligations
 
-These are requirements on what a consumer's scripts do, not on what they are called. No workflow
-input controls either one, and the two fail in opposite ways.
-
-### `test:integration` must not start wp-env when `$GITHUB_ACTIONS` is set
-
-`reusable-phpunit.yml` sets `WP_ENV_CORE` in the `env:` block of its own "Start wp-env" step and
-invokes the consumer's composer script from a separate "Run tests" step, where the variable is
-unset. A `test:integration` script that starts wp-env itself therefore starts it without the
-version the caller selected: wp-env falls back to the `core` value in the consumer's config file,
-the suite runs against that WordPress instead, and the matrix leg reports success for a version it
-never tested. Guard the start on `$GITHUB_ACTIONS` so the script provisions an environment locally
-and uses the one the workflow already started in CI.
-
 ### The wp-env start script must be named `wp-env:start`
 
 `node/playwright.config.base.js` sets `webServer.command` to `npm run wp-env:start`, in place of

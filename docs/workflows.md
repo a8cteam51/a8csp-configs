@@ -107,6 +107,8 @@ Installs Composer dependencies, optionally starts a WordPress environment, runs 
 
 When `needs-wp-env` is `true`, the project must contain `package.json` and `package-lock.json`, and must declare `@wordpress/env`: the workflow starts the environment with the project's own `node_modules/.bin/wp-env`, so CI runs the version the lockfile pins rather than one this repository chose. A project without it fails with a named error rather than a missing-command exit. `wp-env-core` takes precedence over `wp-version`, and the stop step runs under `always()`.
 
+The resulting `WP_ENV_CORE` is set for the whole job, so a Composer script that starts wp-env itself gets the same WordPress as the workflow's own start.
+
 ```yaml
 jobs:
   phpunit:
@@ -125,7 +127,7 @@ Installs PHP and Node.js dependencies, starts the project's `.wp-env.json` envir
 | `wp-version` | `string` | No | `''` | WordPress version tag. An empty value defers to the consumer's `.wp-env.json` `core` setting or wp-env's default stable version. |
 | `wp-env-core` | `string` | No | `''` | Full `WP_ENV_CORE` value. Overrides `wp-version` and accepts repository refs or ZIP URLs. |
 
-Composer dependencies are installed with development packages included. The workflow runs no build, so the suite exercises the build output committed at the tested commit. It installs and caches Chromium, stops wp-env under `always()`, and uploads the `playwright-report` artifact on failure.
+The resulting `WP_ENV_CORE` is set for the whole job, as in the PHPUnit workflow. Composer dependencies are installed with development packages included. The workflow runs no build, so the suite exercises the build output committed at the tested commit. It installs and caches Chromium, stops wp-env under `always()`, and uploads the `playwright-report` artifact on failure.
 
 ```yaml
 jobs:

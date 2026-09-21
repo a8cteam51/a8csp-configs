@@ -18,8 +18,8 @@ in a real runtime.
   than a plugin. The PHPUnit reusable is dogfooded twice: once with `needs-wp-env: false`, which
   leaves its wp-env branch untested, and once against the fixture consumer, which declares
   `@wordpress/env` like a real project so the workflow starts the binary its lockfile pins. The
-  fixture's `smoke.sh` asserts from inside the container that the caller's `wp-version` reached it
-  and that its mapped tree is served — the two things those steps are responsible for.
+  fixture's `smoke.sh` starts wp-env again, as a consumer's own test script may, then asserts from
+  inside the container that the caller's `wp-version` reached it and that its mapped tree is served.
 - **Config smokes** (`.github/workflows/quality.yml`) — the shared configs are exercised the way a
   consumer's CI will exercise them: `phpcs -e` and a fixture scan prove `phpcs.dist.xml` parses and
   its `<rule ref>`s resolve; a fixture analysis proves `phpstan.dist.neon` runs; `npm run lint:config`

@@ -1,9 +1,10 @@
 #!/bin/sh
-# The composer script reusable-phpunit.yml runs against this fixture. It asserts the two things the
-# workflow's wp-env steps are responsible for, and nothing else: that the environment came up on the
-# WordPress the caller asked for, and that it serves this project's tree.
+# The composer script reusable-phpunit.yml runs against this fixture. It asserts what the workflow's
+# wp-env handling is responsible for, and nothing else: that the environment runs the WordPress the
+# caller asked for, including after a consumer script starts wp-env again, and that it serves this
+# project's tree.
 #
-# Both assertions run inside the container and are read through the exit status. Nothing greps
+# Every assertion runs inside the container and is read through the exit status. Nothing greps
 # wp-env's own output, which narrates the command it is about to run and therefore matches any
 # pattern taken from that command.
 
@@ -15,6 +16,10 @@ EXPECTED_WP=6.9.4
 
 # The project's own binary, which is the whole subject of the coverage: the workflow starts this one.
 WP_ENV=./node_modules/.bin/wp-env
+
+# A consumer's test script may start wp-env itself. That start sees only the job's environment, so
+# the version check below also proves the caller's WordPress reached this step, not just the start step.
+$WP_ENV start
 
 # Compared whole rather than matched as a prefix: `6.9.41` and `6.9.4-RC1` are not this version.
 if ! $WP_ENV run cli sh -c "[ \"\$(wp core version)\" = '${EXPECTED_WP}' ]"; then
