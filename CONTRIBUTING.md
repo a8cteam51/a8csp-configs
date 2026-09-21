@@ -25,9 +25,13 @@ The following breaking changes are not permitted as routine changes:
 
 ### Version floors
 
-Changes to the PHP and WordPress version floors are the sanctioned exception to the additive or permissive rule. The floors are enforced by the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.base.dist.xml`, which both PHPCS rulesets include.
+Changes to the PHP and WordPress version floors are one sanctioned exception to the additive or permissive rule. The floors are enforced by the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.base.dist.xml`, which both PHPCS rulesets include.
 
 PHPCS fixes an included ruleset's `<config>` values when it loads them. A consuming ruleset's own `<config>` elements therefore cannot override these values, regardless of declaration order. A consumer that is not ready for a raised floor must set its required values with `--runtime-set` in its own PHPCS CLI invocation, typically in its `composer.json` lint script. Only `--runtime-set` has precedence over ruleset-level configuration.
+
+### Tool runtimes
+
+Moving a tool runtime forward is the other sanctioned exception. The reusable workflows run their tools on PHP and Node versions this package fixes, including the defaults of their version inputs. A consumer's floors, not these runtimes, decide what its code is checked against, so a newer runtime keeps checking code written for older floors. Such a move is a MINOR change once both reference consumers under [Consumer validation](#consumer-validation) pass their gates on it, and a MAJOR change when it requires consumers to change.
 
 ## npm peer dependencies
 
@@ -46,12 +50,8 @@ Before merging a change under `php/quality-assurance/`, run the changed configur
 This package uses real semantic-version Git tags in the form `vX.Y.Z`. A maintainer creates a tag manually from `trunk` after a meaningful merge. Tags are never automated or force-moved, and a tag is not required for every commit.
 
 - **PATCH**: bug fixes and non-behavioral or documentation fixes.
-- **MINOR**: additive or permissive changes, including a new optional input, a new ruleset or file, a new opt-in rule, or a loosened rule.
-- **MAJOR**: the sanctioned version-floor-raise path, or a breaking input rename or removal that went through a major-version discussion before implementation.
-
-### Tool runtimes
-
-The reusable workflows run their tools on PHP and Node versions this package fixes, including the defaults of their version inputs. A consumer's floors, not these runtimes, decide what its code is checked against, so a newer runtime keeps checking code written for older floors. Moving a runtime forward is a MINOR change once both reference consumers under [Consumer validation](#consumer-validation) pass their gates on it. A move that requires consumers to change is a MAJOR change.
+- **MINOR**: additive or permissive changes, including a new optional input, a new ruleset or file, a new opt-in rule, or a loosened rule; and a tool-runtime move that both reference consumers pass.
+- **MAJOR**: the sanctioned version-floor-raise path, a tool-runtime move that requires consumers to change, or a breaking input rename or removal that went through a major-version discussion before implementation.
 
 ### Supported versions
 
