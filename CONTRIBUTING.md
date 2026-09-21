@@ -52,3 +52,7 @@ This package uses real semantic-version Git tags in the form `vX.Y.Z`. A maintai
 ### Tool runtimes
 
 The reusable workflows run their tools on PHP and Node versions this package fixes, including the defaults of their version inputs. A consumer's floors, not these runtimes, decide what its code is checked against, so a newer runtime keeps checking code written for older floors. Moving a runtime forward is a MINOR change once both reference consumers under [Consumer validation](#consumer-validation) pass their gates on it. A move that requires consumers to change is a MAJOR change.
+
+### Supported versions
+
+Only the latest major version is supported: fixes land on `trunk` and ship in its next tag, with no backports to an earlier major. Majors are rare and batch their breaking changes, at most one a year, and each documents its migration steps. Tags never move, so a consumer pinned to an earlier tag keeps that tag's behavior until it next changes, and then moves to the latest major.

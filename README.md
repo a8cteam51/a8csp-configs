@@ -100,4 +100,6 @@ jobs:
 
 Consumers should pin Composer requirements and reusable-workflow `uses:` references to immutable semver tags in `vX.Y.Z` form. `trunk` is the development branch and may break between tags. A full commit SHA is also an acceptable immutable pin for a reusable-workflow `uses:` reference.
 
+Only the latest major version receives fixes; see [supported versions](CONTRIBUTING.md#supported-versions).
+
 Coming from the legacy package? See [the migration guide](docs/migrating-from-team51-configs.md).
