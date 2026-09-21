@@ -4,21 +4,12 @@ on:
   workflow_call:
     inputs:
       project-path:
-        description: 'Path to the project (relative to repo root). npm ci runs here, so package.json and a package-lock.json declaring @wordpress/env must be present — the workflow runs the wp-env the lockfile pins.'
+        description: 'Path to the project (relative to repo root).'
         type: string
         required: false
         default: '.'
-      artifact-slug:
-        description: 'Label for the uploaded failure-report artifact'
-        type: string
-        required: true
-      php-version:
-        description: 'PHP version'
-        type: string
-        required: false
-        default: '8.5'
       wp-version:
-        description: 'WordPress version tag (e.g., "6.9.4"). Leave empty to defer to the consumer plugin''s .wp-env.json `core` setting (or wp-env''s default latest stable).'
+        description: 'WordPress release to run, as a WordPress/WordPress tag name. Leave empty to defer to the `core` setting in the project''s .wp-env.json (or wp-env''s default, the latest stable release).'
         type: string
         required: false
         default: ''
@@ -27,40 +18,20 @@ on:
         type: string
         required: false
         default: ''
-      node-version:
-        description: 'Node.js version'
-        type: string
-        required: false
-        default: '26'
-      composer-options:
-        description: 'Composer install options. The default includes --no-dev; override without it when a scoping pipeline populates dependencies/ during the dev-mode install.'
-        type: string
-        required: false
-        default: '--prefer-dist --no-dev --ignore-platform-req=php+'
-      build-script:
-        description: 'npm script to build assets before starting wp-env. Leave empty to skip (plugins without a frontend build).'
-        type: string
-        required: false
-        default: 'build'
-      wp-env-config-file:
-        description: 'Path to a wp-env config file (relative to project-path). Leave empty to use the default .wp-env.json.'
-        type: string
-        required: false
-        default: ''
-      playwright-script:
-        description: 'npm script that runs the Playwright suite. Override when the plugin wires test:e2e or similar.'
-        type: string
-        required: false
-        default: 'test:e2e'
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   e2e:
     name: Playwright E2E
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      # Job-level, so a consumer script that starts wp-env again gets the same WordPress. wp-env-core wins
+      # over wp-version; both empty leaves WP_ENV_CORE empty, which defers to the config's `core`.
+      WP_ENV_CORE: ${{ inputs.wp-env-core != '' && inputs.wp-env-core || (inputs.wp-version != '' && format('WordPress/WordPress#tags/{0}', inputs.wp-version)) || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -69,14 +40,14 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          php-version: ${{ inputs.php-version }}
+          php-version: '8.5'
           coverage: none
           tools: composer:v2
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: ${{ inputs.node-version }}
+          node-version: '26'
           cache: 'npm'
           cache-dependency-path: ${{ inputs.project-path }}/package-lock.json
 
@@ -84,25 +55,16 @@ jobs:
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
         with:
           working-directory: ${{ inputs.project-path }}
-          composer-options: ${{ inputs.composer-options }}
+          composer-options: '--prefer-dist --ignore-platform-req=php+'
 
       - name: Install npm dependencies
         working-directory: ${{ inputs.project-path }}
         run: |
           npm ci
-          # The project's own wp-env drives the environment below, so CI runs the version its
-          # lockfile pins — and `npm ci` cannot conjure a package the project does not declare.
           if [ ! -x ./node_modules/.bin/wp-env ]; then
             echo "::error::@wordpress/env is not installed in this project — add it to devDependencies. This workflow runs the version the project's lockfile pins."
             exit 1
           fi
-
-      - name: Build assets
-        if: inputs.build-script != ''
-        working-directory: ${{ inputs.project-path }}
-        env:
-          BUILD_SCRIPT: ${{ inputs.build-script }}
-        run: npm run "$BUILD_SCRIPT"
 
       - name: Resolve Playwright version
         id: playwright
@@ -121,45 +83,26 @@ jobs:
 
       - name: Start wp-env
         working-directory: ${{ inputs.project-path }}
-        env:
-          # Override priority: wp-env-core (full value) > wp-version (formatted as tag).
-          # If both empty, WP_ENV_CORE is empty and wp-env falls back to the consumer's
-          # config file `core` setting.
-          WP_ENV_CORE: ${{ inputs.wp-env-core != '' && inputs.wp-env-core || (inputs.wp-version != '' && format('WordPress/WordPress#tags/{0}', inputs.wp-version)) || '' }}
-          WP_ENV_CONFIG_FILE: ${{ inputs.wp-env-config-file }}
-        run: |
-          args=()
-          if [ -n "$WP_ENV_CONFIG_FILE" ]; then
-            args+=(--config "$WP_ENV_CONFIG_FILE")
-          fi
-          ./node_modules/.bin/wp-env start "${args[@]}"
+        run: ./node_modules/.bin/wp-env start
 
       - name: Run Playwright tests
         working-directory: ${{ inputs.project-path }}
-        env:
-          PLAYWRIGHT_SCRIPT: ${{ inputs.playwright-script }}
-        run: npm run "$PLAYWRIGHT_SCRIPT"
+        run: npm run test:e2e
 
       - name: Upload Playwright artifacts on failure
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: playwright-report-${{ inputs.artifact-slug }}
-          # The shared Playwright base points WP_ARTIFACTS_PATH here, and its reporter is `list`, so
-          # traces and screenshots are the only failure evidence and no HTML report is written.
+          name: playwright-report
+          # The shared Playwright base points WP_ARTIFACTS_PATH here, and CI's `github` reporter writes no
+          # HTML report, so traces and screenshots are the failure evidence.
           path: ${{ inputs.project-path }}/tests/.cache/artifacts
           retention-days: 7
 
       - name: Stop wp-env
         if: always()
         working-directory: ${{ inputs.project-path }}
-        env:
-          WP_ENV_CONFIG_FILE: ${{ inputs.wp-env-config-file }}
         run: |
           # Teardown runs on failure too, including a failure that happened before the binary existed.
           [ -x ./node_modules/.bin/wp-env ] || exit 0
-          args=()
-          if [ -n "$WP_ENV_CONFIG_FILE" ]; then
-            args+=(--config "$WP_ENV_CONFIG_FILE")
-          fi
-          ./node_modules/.bin/wp-env stop "${args[@]}"
+          ./node_modules/.bin/wp-env stop

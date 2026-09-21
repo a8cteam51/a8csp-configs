@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       languages:
-        # CodeQL ships no PHP analyzer; PHP is statically analysed by PHPStan in the Quality workflow.
+        # CodeQL ships no PHP analyzer; PHPStan covers PHP.
         description: 'Non-empty JSON array of CodeQL languages'
         type: string
         required: false
@@ -44,19 +44,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
-          # code-scanning/alerts is GHAS-gated: a 200 (even an empty list) means the feature is
-          # available; a 403 naming Advanced Security is the exact failure CodeQL's own SARIF upload
-          # would hit on a private repo without the feature, so probing this surfaces it before
-          # analyze ever runs. A confirmed-absent 403 is trusted immediately. Everything else — a
-          # curl error, a transient 5xx, an unrecognized 403 body — is ambiguous and gets retried up
-          # to max_attempts times before the loop gives up.
-          #
-          # Loud over silent: a skipped analyze job counts as a passing required check, so once
-          # retries are exhausted this step resolves a still-ambiguous outcome to "available" and lets
-          # analyze run — a repo that's genuinely missing GHAS then fails visibly on SARIF upload
-          # instead of silently passing. This is the opposite default from the sibling detect-ghas step
-          # in reusable-workflow-checks.yml, where the zizmor job scans and gates either way, so
-          # guessing "unavailable" there only costs a Security-tab upload rather than an entire scan.
+          # code-scanning/alerts is GHAS-gated: 200 means available, a 403 naming Advanced Security means
+          # absent. Anything else is retried, then treated as available: a skipped analyze would pass as a
+          # green check, so a repository really missing GHAS must fail visibly on SARIF upload instead.
           probe_body="${RUNNER_TEMP}/ghas-probe.json"
           max_attempts=3
           retry_sleep_seconds=5

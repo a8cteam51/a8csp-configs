@@ -6,16 +6,20 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests for the discovery logic in `php/quality-assurance/phpstan.dist.neon.php`.
- * The file is procedural — uses `getcwd()` as its project root — so tests `chdir` to a
- * fixture directory, `require` the file, and assert on the returned config array.
+ * Tests for the discovery logic in `php/quality-assurance/phpstan.dist.neon.php`, which reads
+ * `getcwd()` as the project root.
  */
 final class PhpstanBootstrapTest extends TestCase {
+	// region FIELDS AND CONSTANTS.
 
 	private const CONFIG_FILE = __DIR__ . '/../../php/quality-assurance/phpstan.dist.neon.php';
 
 	private string $project_dir;
 	private string $original_cwd;
+
+	// endregion.
+
+	// region LIFECYCLE.
 
 	protected function setUp(): void {
 		$tmp                = \realpath( \sys_get_temp_dir() ) ?: \sys_get_temp_dir();
@@ -29,6 +33,10 @@ final class PhpstanBootstrapTest extends TestCase {
 		\chdir( $this->original_cwd );
 		$this->rrmdir( $this->project_dir );
 	}
+
+	// endregion.
+
+	// region TESTS.
 
 	#[Test]
 	public function scans_scoped_dependencies_directory_when_present(): void {
@@ -104,6 +112,10 @@ final class PhpstanBootstrapTest extends TestCase {
 		self::assertSame( array(), $config );
 	}
 
+	// endregion.
+
+	// region HELPERS.
+
 	private function rrmdir( string $dir ): void {
 		if ( ! \is_dir( $dir ) ) {
 			return;
@@ -121,4 +133,6 @@ final class PhpstanBootstrapTest extends TestCase {
 		}
 		\rmdir( $dir );
 	}
+
+	// endregion.
 }

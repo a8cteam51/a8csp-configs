@@ -15,7 +15,6 @@ on:
       - '.github/workflows/quality.yml'
       - '.github/workflows/reusable-block-json-check.yml'
       - '.github/workflows/reusable-phpunit.yml'
-      - '.github/workflows/reusable-scripts-styles-lint.yml'
       - '.github/workflows/reusable-supply-chain-audit.yml'
   push:
     branches: [trunk]
@@ -32,7 +31,6 @@ on:
       - '.github/workflows/quality.yml'
       - '.github/workflows/reusable-block-json-check.yml'
       - '.github/workflows/reusable-phpunit.yml'
-      - '.github/workflows/reusable-scripts-styles-lint.yml'
       - '.github/workflows/reusable-supply-chain-audit.yml'
   schedule:
     - cron: '41 6 * * 1'
@@ -68,12 +66,10 @@ jobs:
       - name: Install dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
 
-      # phpcs -e loads the ruleset and lists its sniffs without scanning any file — the
-      # cheapest possible proof that the XML parses and every <rule ref> still resolves.
+      # phpcs -e loads the ruleset without scanning, proving the XML parses and every <rule ref> resolves.
       - name: Explain php/quality-assurance/phpcs.dist.xml
         run: vendor/bin/phpcs -e --standard=php/quality-assurance/phpcs.dist.xml
 
-      # The companion tests-profile ruleset ships too; -e proves it parses and every <rule ref> resolves.
       - name: Explain php/quality-assurance/phpcs.tests.dist.xml
         run: vendor/bin/phpcs -e --standard=php/quality-assurance/phpcs.tests.dist.xml
 
@@ -81,17 +77,13 @@ jobs:
         shell: bash
         run: |
           set -e -o pipefail
-          # phpcs.dist.xml excludes */tests/*, so a temp copy is scanned outside that path — the
-          # dedicated companion ruleset (phpcs.tests.dist.xml) is what lints tests/ itself.
+          # phpcs.dist.xml excludes */tests/*, so a copy outside that path is scanned.
           cp -R tests/fixtures/plugin-stub "$RUNNER_TEMP/plugin-stub"
-          rm -f "$RUNNER_TEMP/plugin-stub/vendor"
           vendor/bin/phpcs -v --standard=php/quality-assurance/phpcs.dist.xml "$RUNNER_TEMP/plugin-stub" | tee phpcs-scan.log
           # The ruleset's own exclude-patterns can silently empty the file list, and an empty scan proves nothing.
           ! grep -qF '(0 files in queue)' phpcs-scan.log
 
-      # Both profiles include phpcs.base.dist.xml, and an exclude-pattern in an included ruleset applies
-      # to every ruleset that includes it: a */tests/* exclusion reaching the base would leave the tests
-      # profile scanning nothing while still exiting 0.
+      # An exclude-pattern in the shared base applies to both profiles; a */tests/* one would leave this scan empty.
       - name: Scan a tests/ fixture with php/quality-assurance/phpcs.tests.dist.xml
         shell: bash
         run: |
@@ -101,12 +93,7 @@ jobs:
           vendor/bin/phpcs -v --standard=php/quality-assurance/phpcs.tests.dist.xml "$RUNNER_TEMP/consumer/tests" | tee phpcs-tests-scan.log
           ! grep -qF '(0 files in queue)' phpcs-tests-scan.log
 
-      # PHPCompatibility is unpinned here and in every consumer, so a resolution to the stable
-      # releases silently drops the sniffs that cover current PHP syntax and every testVersion
-      # check passes against nothing. The fixture is deprecated by construction, so the two
-      # PHPCompatibility sniff codes must both appear; matching the codes rather than the message
-      # is what makes this a detector, because Generic.PHP.DeprecatedFunctions reports
-      # utf8_encode() under either resolution.
+      # Stable PHPCompatibility releases lack the current-PHP sniffs; only the pre-release codes prove them present.
       - name: Assert the PHPCompatibility sniffs are not vacuous
         shell: bash
         run: |
@@ -140,26 +127,13 @@ jobs:
       - name: Install dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
 
-      # phpstan.dist.neon includes phpstan.dist.neon.php, which discovers paths via getcwd()
-      # and resolves bootstrapFiles via %currentWorkingDirectory%. Both must resolve from
-      # inside the fixture, so this step (not the repo root) is cwd.
-      # tests/fixtures/plugin-stub/vendor is a symlink back to the package's own vendor/,
-      # so the WordPress stubs bootstrap file resolves without a second composer install.
-      - name: Analyse fixture with php/quality-assurance/phpstan.dist.neon
+      # phpstan.dist.neon.php discovers paths via getcwd(), so the fixture is the working directory.
+      - name: Analyze fixture with php/quality-assurance/phpstan.dist.neon
         working-directory: tests/fixtures/plugin-stub
-        run: vendor/bin/phpstan analyse -c ../../../php/quality-assurance/phpstan.dist.neon --no-progress
-
-  lint-scripts:
-    name: Lint scripts (ESLint)
-    # Dogfoods the repo's own scripts/styles reusable with lint-styles disabled (no CSS in this repo).
-    permissions:
-      contents: read
-    uses: ./.github/workflows/reusable-scripts-styles-lint.yml
-    with:
-      lint-styles: false
+        run: ../../../vendor/bin/phpstan analyse -c ../../../php/quality-assurance/phpstan.dist.neon --no-progress
 
   lint-config:
-    name: Node config smokes
+    name: Node lint and config smokes
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -180,12 +154,14 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      - name: Lint scripts
+        run: npm run lint:scripts
+
       - name: Smoke-test shared Node configs
         run: npm run lint:config
 
   phpunit:
     name: PHPUnit
-    # Dogfoods the repo's own PHPUnit reusable; the unit suite needs no WordPress runtime.
     permissions:
       contents: read
     uses: ./.github/workflows/reusable-phpunit.yml
@@ -194,32 +170,25 @@ jobs:
 
   phpunit-wp-env:
     name: PHPUnit (wp-env fixture)
-    # The job above dogfoods the reusable with needs-wp-env: false, which leaves its wp-env branch —
-    # the npm install assertion, the start, and the always() stop — covered by nothing in the
-    # repository that owns it. This one runs that branch against a fixture consumer, so the blocks
-    # are exercised where they are maintained rather than only wherever they are called.
+    # Runs the reusable's wp-env branch, which the unit job above skips, against a fixture consumer.
     permissions:
       contents: read
     uses: ./.github/workflows/reusable-phpunit.yml
     with:
       project-path: tests/fixtures/wp-env-consumer
       composer-script: test:wp-env
-      # The fixture asserts this exact version from inside the container, which is what proves the
-      # input reached it. Change one and the smoke fails until the other follows.
+      # The fixture asserts this exact version from inside the container; change both together.
       wp-version: '6.9.4'
 
   supply-chain:
     name: Supply-chain audit
-    # npm gate audits production deps only — the dev-tooling graph (wp-scripts/playwright trees) is advisory via dependabot alerts.
     permissions:
       contents: read
     uses: ./.github/workflows/reusable-supply-chain-audit.yml
-    with:
-      npm-audit-flags: '--omit=dev --audit-level=high'
 
   block-json:
     name: block.json schema check
-    # Dogfoods reusable-block-json-check against a throwaway fixture; this tooling repo ships no real blocks.
+    # This repository ships no blocks, so the check runs against a fixture.
     permissions:
       contents: read
     uses: ./.github/workflows/reusable-block-json-check.yml

@@ -1,23 +1,23 @@
 # Scripts contract
 
-This document names the composer and npm script identifiers the reusable workflows in this
-repository treat as their interface. A consuming project's `composer.json` and `package.json`
-scripts must use these names for the corresponding reusable workflow to find and run them. It also
-lists the files the release workflow reads from the consumer's tree, the names the fleet shares by
-convention alone, what a consumer's own scripts have to do for the workflows to hold, and the
-PHPUnit configuration every repository copies.
+This document names the composer and npm script identifiers the reusable workflows and shared
+configs in this repository treat as their interface. A consuming project's `composer.json` and
+`package.json` scripts must use these names for the corresponding workflow or config to find and
+run them.
 
 ## Fixed names
 
-These names are hardcoded in the reusable workflow and are not configurable via a `workflow_call`
-input.
+These names are hardcoded in a reusable workflow or a shared config and are not configurable via a
+`workflow_call` input.
 
-| Script | Ecosystem | Workflow | Condition |
+| Script | Ecosystem | Read by | Condition |
 | --- | --- | --- | --- |
-| `lint:scripts` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-scripts` input is `true` (default). |
-| `lint:styles` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-styles` input is `true` (default). |
+| `lint:scripts` | npm | `reusable-scripts-styles-lint.yml` | Always runs. |
+| `lint:styles` | npm | `reusable-scripts-styles-lint.yml` | Always runs. |
 | `lint:types` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-types` input is `true`; the input defaults to `false`, so a consumer with TypeScript sources opts in. |
 | `changelog:validate` | composer | `reusable-release.yml` | Runs in every release build, before the production install. |
+| `test:e2e` | npm | `reusable-playwright-e2e.yml` | Runs the Playwright suite once wp-env is up. |
+| `wp-env:start` | npm | `node/playwright.config.base.js` | Playwright's web-server command, in place of the `npm run wp-env start` default in the `@wordpress/scripts` base. A local `npm run test:e2e` starts the environment through it; CI never does, because the E2E workflow's own start is already listening, so a misnamed script fails only locally. |
 
 ## Default names (input-overridable)
 
@@ -27,8 +27,6 @@ matching the default avoids an unnecessary `with:` entry.
 | Script | Ecosystem | Workflow | Input |
 | --- | --- | --- | --- |
 | `test` | composer | `reusable-phpunit.yml` | `composer-script` |
-| `build` | npm | `reusable-playwright-e2e.yml` | `build-script` |
-| `test:e2e` | npm | `reusable-playwright-e2e.yml` | `playwright-script` |
 
 ## Convention (consumer-declared, not enforced by the workflow)
 
@@ -49,8 +47,8 @@ the job uses the name; one that does not have the job omits the script.
 | --- | --- | --- |
 | `packages-install` | composer, npm | Installs dependencies for local work. The composer copy passes `--ignore-platform-req=php+`, so a PHP newer than the declared floor still installs. |
 | `packages-update` | composer, npm | Updates dependencies within the declared constraints. |
-| `packages-update:wp` | npm | Moves the `@wordpress/*` packages onto the dist-tag for the supported WordPress version. |
-| `audit` | npm | Runs the Composer and npm audits together, with the same flags the caller passes `reusable-supply-chain-audit.yml`, so a local run and CI agree. |
+| `packages-update:wp` | npm | Moves the `@wordpress/*` packages onto an npm dist-tag: a plugin repository targets the `wp-X.Y` tag of its WordPress floor, a site repository targets `latest`. |
+| `audit` | npm | Runs the Composer and npm audits together, with the flags `reusable-supply-chain-audit.yml` uses, so a local run and CI agree. |
 | `check:engines` | npm | Checks the running Node and npm against the `engines` field. |
 | `check:licenses` | npm | Checks dependency licenses. |
 | `format:php` | composer | Rewrites PHP with `phpcbf` against the repository's own ruleset. |
@@ -58,33 +56,9 @@ the job uses the name; one that does not have the job omits the script.
 | `quality-check` | composer | The aggregate to run before pushing: the lint scripts plus the unit suite. |
 | `changelog:add` | composer | Records a changelog entry for the change in hand. |
 | `changelog:write` | composer | Folds the recorded entries into `CHANGELOG.md` for a release. |
-| `wp-env:start` | npm | Starts the development environment. This one name is load-bearing — see [Consumer obligations](#consumer-obligations). |
 
 Nothing fails when a name here is missing or spelled differently. The names under Fixed names and
-Default names are the ones a workflow resolves.
-
-## Consumer obligations
-
-These are requirements on what a consumer's scripts do, not on what they are called. No workflow
-input controls either one, and the two fail in opposite ways.
-
-### `test:integration` must not start wp-env when `$GITHUB_ACTIONS` is set
-
-`reusable-phpunit.yml` sets `WP_ENV_CORE` in the `env:` block of its own "Start wp-env" step and
-invokes the consumer's composer script from a separate "Run tests" step, where the variable is
-unset. A `test:integration` script that starts wp-env itself therefore starts it without the
-version the caller selected: wp-env falls back to the `core` value in the consumer's config file,
-the suite runs against that WordPress instead, and the matrix leg reports success for a version it
-never tested. Guard the start on `$GITHUB_ACTIONS` so the script provisions an environment locally
-and uses the one the workflow already started in CI.
-
-### The wp-env start script must be named `wp-env:start`
-
-`node/playwright.config.base.js` sets `webServer.command` to `npm run wp-env:start`, in place of
-the `npm run wp-env start` default in the `@wordpress/scripts` Playwright base. A consumer that
-names the script anything else has no web server at all. This one fails loudly on the first local
-`npm run test:e2e` and never surfaces in CI, because `reusable-playwright-e2e.yml` starts wp-env in
-its own step and Playwright's `reuseExistingServer` finds it already listening.
+Default names are the ones a workflow or shared config resolves.
 
 ## PHPUnit configuration
 
@@ -97,16 +71,15 @@ The file is named `phpunit.dist.xml` and carries at least these attributes on th
 | Attribute | Value | Purpose |
 | --- | --- | --- |
 | `failOnWarning` | `true` | A warning ends the run rather than scrolling past in a green report. |
-| `failOnRisky` | `true` | A test that asserts nothing or leaves state behind ends the run. |
+| `failOnRisky` | `true` | A risky test ends the run. |
 | `failOnNotice` | `true` | A notice ends the run. |
 | `beStrictAboutOutputDuringTests` | `true` | Output from the code under test marks the test risky, which `failOnRisky` then turns into a failure. |
 | `colors` | `true` | Readable output locally and in the Actions log. |
 | `cacheDirectory` | `tests/.cache/phpunit` | Keeps the result cache beside the other tool caches instead of in the repository root. |
 
-`executionOrder` is `depends,defects,random`. A repository that needs a different order states the
-reason in a comment beside the attribute. `resolveDependencies` is a separate attribute defaulting
-to `true`, so `random` still honors `#[Depends]`; running defects first keeps the local feedback
-loop short, and randomizing the rest surfaces tests that pass only in a particular order.
+`executionOrder` is `depends,defects,random`: defects first keeps the local feedback loop short, and
+randomizing the rest surfaces tests that pass only in a particular order. A repository that needs a
+different order states the reason in a comment beside the attribute.
 
 ## Release
 
@@ -122,5 +95,5 @@ consumer's repository. Only the entry file can be changed through a `workflow_ca
 
 ## Out of scope
 
-The reusable release-smoke workflow runs no consumer-defined script: it installs and activates the
+The release workflow's smoke job runs no consumer-defined script: it installs and activates the
 built artifact through wp-env.

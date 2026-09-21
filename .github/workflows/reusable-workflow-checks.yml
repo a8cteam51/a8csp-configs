@@ -1,5 +1,5 @@
 name: Workflow Checks
-# Callers wanting Security-tab SARIF upload must grant `security-events: write`.
+# Callers grant `contents: read`, `actions: read` and `security-events: write`; a caller must grant every permission the called jobs declare, or the call fails at startup.
 
 on:
   workflow_call:
@@ -43,17 +43,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
-          # code-scanning/alerts is GHAS-gated: a 200 (even an empty list) means the feature is
-          # available; a 403 naming Advanced Security is the exact failure the SARIF upload below
-          # would hit on a private repo without the feature, so probing this surfaces it first. A
-          # confirmed-absent 403 is trusted immediately. Everything else — a curl error, a transient
-          # 5xx, an unrecognized 403 body — is ambiguous and gets retried up to max_attempts times
-          # before the loop gives up.
-          #
-          # Unlike the sibling detect-ghas step in reusable-codeql.yml, an unresolved ambiguity here
-          # resolves to "unavailable": the native-mode zizmor branch below still scans and fails the
-          # job on any finding, so guessing wrong only costs the Security-tab upload — a safe
-          # degradation, unlike CodeQL where "unavailable" skips the scan outright.
+          # code-scanning/alerts is GHAS-gated: 200 means available, a 403 naming Advanced Security means
+          # absent. Anything else is retried, then treated as unavailable: native mode still scans and
+          # fails on any finding, so a wrong guess costs only the Security-tab upload.
           probe_body="${RUNNER_TEMP}/ghas-probe.json"
           max_attempts=3
           retry_sleep_seconds=5
@@ -97,16 +89,14 @@ jobs:
       contents: read
       actions: read
     env:
-      # Both branches below resolve this release through the action's own version table, so a
-      # repo's findings never differ by which branch it takes.
-      ZIZMOR_VERSION: '1.26.1'
+      # Both modes run this one version, so findings never depend on the mode.
+      ZIZMOR_VERSION: '1.29.0'
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      # Advanced Security mode uploads the SARIF but never fails the job, so the next step gates CI on the result count.
       - name: Run zizmor
         id: zizmor
         if: needs.detect-ghas.outputs.ghas-available == 'true'
@@ -115,10 +105,7 @@ jobs:
           inputs: ${{ inputs.zizmor-inputs }}
           version: ${{ env.ZIZMOR_VERSION }}
 
-      # No-GHAS path: the same pinned action in native mode. advanced-security:false skips the
-      # Security-tab upload and drops --format=sarif, so zizmor runs in plain mode and its own
-      # nonzero exit on any finding fails the job directly — no count gate on this branch.
-      # annotations:true surfaces findings inline on the PR.
+      # Native mode: zizmor's own exit fails the job on any finding, annotated inline.
       - name: Run zizmor without Advanced Security
         if: needs.detect-ghas.outputs.ghas-available == 'false'
         uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
@@ -134,10 +121,7 @@ jobs:
         env:
           SARIF: ${{ steps.zizmor.outputs.output-file }}
         run: |
-          # Fail closed: only a well-formed SARIF whose runs[].results count is a single integer is
-          # trusted. A missing/empty file, unparseable JSON, parseable-but-non-SARIF JSON ({}, null,
-          # {"runs":{}}), or a multi-document count is an unknown scan result and must not pass — an
-          # empty/non-integer $count would otherwise make `[ -ne 0 ]` error and the `if` fall through.
+          # Fail closed: only a well-formed SARIF with a single integer result count is a known result.
           if [ ! -s "$SARIF" ]; then
             echo "::error::zizmor produced no SARIF at '$SARIF' — cannot confirm a clean scan."
             exit 1
@@ -146,8 +130,6 @@ jobs:
             echo "::error::zizmor SARIF at '$SARIF' is missing or malformed — cannot confirm a clean scan."
             exit 1
           fi
-          # Whole-string integer check (grep is line-oriented, so a multi-document count would slip
-          # through it); anything but a single non-negative integer is an unknown result.
           case "$count" in
             '' | *[!0-9]*)
               echo "::error::unexpected zizmor finding count '$count' — cannot confirm a clean scan."

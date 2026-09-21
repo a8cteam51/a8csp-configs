@@ -1,8 +1,6 @@
 <?php declare( strict_types=1 );
 /**
- * Fixture carrying two constructs PHP 8.2 deprecated. Only the PHPCompatibility pre-release
- * majors sniff them, so a scan that reports nothing here proves the `testVersion` checks
- * resolved to the stable releases and are passing vacuously.
+ * Two deprecated constructs the PHPCompatibility check in quality.yml must flag.
  *
  * @package A8C\SpecialProjects\Configs\Tests
  */

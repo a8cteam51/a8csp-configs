@@ -8,11 +8,6 @@ on:
         type: string
         required: false
         default: '.'
-      node-version:
-        description: 'Node.js version'
-        type: string
-        required: false
-        default: '26'
 
 permissions: {}
 
@@ -32,12 +27,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: ${{ inputs.node-version }}
+          node-version: '26'
 
       - name: Validate block.json files against the WordPress schema
         working-directory: ${{ inputs.project-path }}
         run: |
-          # Validate one file per -d invocation; a single joined string breaks multi-block plugins.
           mapfile -d '' files < <(find . -path ./node_modules -prune -o -path ./vendor -prune -o -name 'block.json' -print0)
           if [ "${#files[@]}" -eq 0 ]; then
             echo "No block.json files found — nothing to validate."

@@ -14,7 +14,7 @@ Update the existing `repositories` VCS entry, or add one, to point at `https://g
     { "type": "vcs", "url": "https://github.com/a8cteam51/a8csp-configs" }
   ],
   "require-dev": {
-    "a8csp/configs": "v1.0.0",
+    "a8csp/configs": "vX.Y.Z",
     "roave/security-advisories": "dev-latest"
   }
 }
@@ -26,7 +26,7 @@ Composer honors stability flags only in the root package, and two root requireme
 
 The `roave/security-advisories` line above is mandatory. This package requires `roave/security-advisories` so that no consumer can install a dependency version with a known security advisory, and because that package has no stable release, Composer refuses to install `a8csp/configs` without the root line under the default `minimum-stability` of `stable`.
 
-The shared ruleset runs PHPCompatibilityWP, but this package deliberately does not pin the PHPCompatibility packages, because only the consumer can select the pre-release majors that sniff current PHP syntax. Require them alongside the package:
+The shared ruleset runs PHPCompatibilityWP, and this package accepts either the stable or the pre-release majors of the PHPCompatibility packages, because only the consumer's root requirements can select the pre-release majors that sniff current PHP syntax. Require them alongside the package:
 
 ```json
 {
@@ -48,6 +48,12 @@ Point the consumer's PHPCS ruleset at:
 <rule ref="vendor/a8csp/configs/php/quality-assurance/phpcs.dist.xml" />
 ```
 
+That production profile excludes `tests/`. Lint test code with a second, tests-only ruleset that points at the companion profile, and run it as its own PHPCS invocation (the `lint:php:phpcs:tests` script in [the scripts contract](scripts-contract.md)); without it, test code goes unchecked:
+
+```xml
+<rule ref="vendor/a8csp/configs/php/quality-assurance/phpcs.tests.dist.xml" />
+```
+
 Point the consumer's PHPStan configuration at:
 
 ```neon
@@ -55,11 +61,11 @@ includes:
     - vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
 ```
 
-These are the canonical and only ruleset paths in this package. It has no legacy `quality-assurance/` shim path, unlike `a8cteam51/team51-configs`.
+These are the canonical ruleset paths in this package. It has no legacy `quality-assurance/` shim path, unlike `a8cteam51/team51-configs`.
 
 ## PHPStan entry file
 
-The shared PHPStan configuration adds the conventional root files (`functions-bootstrap.php`, `functions.php`, `uninstall.php`) and source directories (`src`, `includes`, `models`, `blocks`, `templates`) to the analysed paths when they exist. It does not add the plugin entry file, whose name differs per repository, so PHPStan never analyses that file unless the consumer lists it. List it under `parameters.paths` in the consumer's PHPStan configuration, together with any other file or directory outside the conventional set, and name it as `WPCompat.pluginFile` too. The WordPress compatibility rules read the plugin's `Requires at least` header from that file; without it they look for a file named after the checkout directory, then `plugin.php`, then `style.css`, and stop with "No plugin or theme file found" when none exists. Setting `WPCompat.requiresAtLeast` to a version instead also works.
+The shared PHPStan configuration adds the conventional root files (`functions-bootstrap.php`, `functions.php`, `uninstall.php`) and source directories (`src`, `includes`, `models`, `blocks`, `templates`) to the analyzed paths when they exist. It does not add the plugin entry file, whose name differs per repository, so PHPStan never analyzes that file unless the consumer lists it. List it under `parameters.paths` in the consumer's PHPStan configuration, together with any other file or directory outside the conventional set, and name it as `WPCompat.pluginFile` too. The WordPress compatibility rules read the plugin's `Requires at least` header from that file; without it they look for a file named after the checkout directory, then `plugin.php`, then `style.css`, and stop with "No plugin or theme file found" when none exists. Setting `WPCompat.requiresAtLeast` to a version instead also works.
 
 ```neon
 parameters:
@@ -71,11 +77,9 @@ parameters:
 
 ## Version floors
 
-Migration raises the configured floors to PHP 8.5 and WordPress 7.1 through the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.base.dist.xml`, which both the production and tests rulesets include.
+Migration raises the configured floors to the [supported floors](../README.md#supported-floors) through the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.base.dist.xml`, which both the production and tests rulesets include.
 
-A consumer that is not ready for either floor must opt out per repository with `--runtime-set` in its own PHPCS CLI invocation. A consuming ruleset's `<config>` elements cannot override an included ruleset's already-set `<config>` values, regardless of declaration order. Only `--runtime-set` has precedence over ruleset-level configuration.
-
-The consumer sets `testVersion` and `minimum_wp_version` with `--runtime-set` on its own `phpcs` invocation, typically in its `composer.json` lint script.
+A consumer that is not ready for either floor opts out per repository as [CONTRIBUTING](../CONTRIBUTING.md#version-floors) describes.
 
 ## PHPMD
 
@@ -86,7 +90,7 @@ PHPMD is not part of this package. A consumer that still uses PHPMD must keep re
 Migrating to `a8csp-configs` adds access to reusable workflows, which `team51-configs` did not provide. Add a `uses:` reference to the consumer's own workflow files for each reusable workflow it needs:
 
 ```yaml
-uses: a8cteam51/a8csp-configs/.github/workflows/<workflow-file>.yml@v1.0.0
+uses: a8cteam51/a8csp-configs/.github/workflows/<workflow-file>.yml@vX.Y.Z
 ```
 
 Do not reference `trunk` from a production consumer.

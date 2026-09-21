@@ -30,7 +30,6 @@
     "roave/security-advisories": "dev-latest"
   },
   "require-dev": {
-    "composer/composer": "^2",
     "phpunit/phpunit": "^13",
 
     "phpcompatibility/phpcompatibility-wp": "^3@alpha",
@@ -56,7 +55,6 @@
   },
   "config": {
     "allow-plugins": {
-      "composer/*": true,
       "dealerdirect/phpcodesniffer-composer-installer": true,
       "phpstan/extension-installer": true
     }

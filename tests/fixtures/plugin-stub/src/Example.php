@@ -8,8 +8,7 @@
 namespace A8C\SpecialProjects\Configs\Tests;
 
 /**
- * A minimal, standards-compliant class used only to prove the shipped
- * rulesets can parse and analyze real PHP without crashing.
+ * A standards-compliant class for the PHPCS and PHPStan smokes.
  */
 class Example {
 	/**

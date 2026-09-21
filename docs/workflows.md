@@ -1,6 +1,6 @@
 # Reusable workflows
 
-This document is the per-workflow `workflow_call` input reference for the reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#reusable-workflow-inputs) freeze existing inputs; additional inputs must be optional and define a default.
+This document is the per-workflow `workflow_call` input reference for the reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#backwards-compatibility-contract) keep existing inputs stable until a major release; additional inputs must be optional and define a default.
 
 ## block.json Schema Check — `.github/workflows/reusable-block-json-check.yml`
 
@@ -9,7 +9,6 @@ Finds `block.json` files under the project path and validates each one against t
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
-| `node-version` | `string` | No | `'26'` | Node.js version. |
 
 The workflow exits successfully with a message when it finds no `block.json` files. The search prunes `./node_modules` and `./vendor` under `project-path`.
 
@@ -18,7 +17,7 @@ jobs:
   block-json:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-block-json-check.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-block-json-check.yml@vX.Y.Z
 ```
 
 ## CodeQL — `.github/workflows/reusable-codeql.yml`
@@ -29,9 +28,9 @@ Runs GitHub CodeQL initialization and analysis as one matrix job per configured 
 | --- | --- | --- | --- | --- |
 | `languages` | `string` | No | `'["actions"]'` | Non-empty JSON array of CodeQL languages. |
 
-An empty `languages` array fails validation instead of producing an empty successful matrix. CodeQL has no PHP analyzer, so PHP is outside this workflow; PHPStan provides static analysis for PHP.
+An empty `languages` array fails validation. CodeQL has no PHP analyzer; PHPStan covers PHP.
 
-A `detect-ghas` job probes `code-scanning/alerts` before `analyze` runs. When GitHub Advanced Security is unavailable — the expected state for a private repository without the paid feature — `analyze` is skipped with an `::notice` instead of failing; a public repository always has GHAS available, so `analyze` always runs there. Detection needs only `security-events: read`, already covered by the `security-events: write` this workflow requires.
+A `detect-ghas` job probes `code-scanning/alerts` first. Without GitHub Advanced Security, the usual state of a private repository, `analyze` is skipped with a notice; a public repository always has it.
 
 ```yaml
 jobs:
@@ -40,7 +39,7 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-codeql.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-codeql.yml@vX.Y.Z
     with:
       languages: '["actions", "javascript-typescript"]'
 ```
@@ -52,19 +51,16 @@ Validates `composer.json` and its lock, installs Composer dependencies, and runs
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `scripts` | `string` | Yes | — | Non-empty JSON array of Composer scripts; each script runs as a parallel job. |
-| `php-version` | `string` | No | `'8.5'` | PHP version for the script jobs. |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
-| `composer-options` | `string` | No | `'--prefer-dist --ignore-platform-req=php+'` | Composer options passed to dependency installation. |
-| `composer-validate` | `boolean` | No | `true` | Whether to run `composer validate --strict` as its own job. It fails when `composer.lock` is out of date with `composer.json` or `composer validate` reports any warning; the dependency install only warns about a stale lock. |
 
-An empty `scripts` array fails validation. Each matrix job invokes its script as `composer "$SCRIPT"`.
+An empty `scripts` array fails validation. Each matrix job invokes its script as `composer "$SCRIPT"` on PHP 8.5. `composer validate --strict` always runs as its own job: it fails when `composer.lock` is out of date with `composer.json` or `composer validate` reports any warning, which the dependency install only warns about.
 
 ```yaml
 jobs:
   php-lint:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-lint.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-lint.yml@vX.Y.Z
     with:
       scripts: '["lint:php:phpcs", "lint:php:phpcs:tests", "lint:php:phpstan"]'
 ```
@@ -76,7 +72,7 @@ Runs `php -l` over every PHP file under the project path for each configured PHP
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
-| `php-versions` | `string` | No | `'["8.5"]'` | Non-empty JSON array of PHP versions to check, such as `["8.5","8.6"]`. |
+| `php-versions` | `string` | No | `'["8.5","8.6"]'` | Non-empty JSON array of PHP versions to check. |
 
 An empty `php-versions` array fails validation. The file search prunes `./vendor` and `./node_modules` under `project-path`.
 
@@ -85,9 +81,7 @@ jobs:
   php-syntax:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-syntax-check.yml@v1.0.0
-    with:
-      php-versions: '["8.5", "8.6"]'
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-syntax-check.yml@vX.Y.Z
 ```
 
 ## PHPUnit — `.github/workflows/reusable-phpunit.yml`
@@ -97,53 +91,44 @@ Installs Composer dependencies, optionally starts a WordPress environment, runs 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
-| `php-version` | `string` | No | `'8.5'` | PHP version for the test run. |
-| `wp-version` | `string` | No | `''` | WordPress version tag. An empty value defers to the consumer's `.wp-env.json` `core` setting or wp-env's default stable version. |
+| `php-version` | `string` | No | `'8.5'` | PHP version on the runner, which runs Composer and any suite that does not use wp-env. Suites inside wp-env run on the `phpVersion` of its config file. |
+| `wp-version` | `string` | No | `''` | WordPress release to run, as a `WordPress/WordPress` tag name. An empty value defers to the `core` setting in the project's wp-env config file, or wp-env's default, the latest stable release. |
 | `wp-env-core` | `string` | No | `''` | Full `WP_ENV_CORE` value. Overrides `wp-version` and accepts repository refs or ZIP URLs. |
 | `composer-script` | `string` | No | `'test'` | Composer script invoked for the test run. |
-| `composer-options` | `string` | No | `'--prefer-dist --ignore-platform-req=php+'` | Composer options passed to dependency installation. |
-| `node-version` | `string` | No | `'26'` | Node.js version used by the wp-env CLI. |
 | `wp-env-config-file` | `string` | No | `''` | wp-env configuration path relative to `project-path`. An empty value uses `.wp-env.json`; use a separate file per environment instead of the deprecated implicit development/test split. |
 | `wp-env-xdebug` | `string` | No | `''` | Value passed to `wp-env start --xdebug=<mode>`, such as `coverage`. An empty value starts without Xdebug. |
 | `needs-wp-env` | `boolean` | No | `true` | Whether to run `npm ci` and start and stop wp-env. A caller with a unit-only suite must pass `false`; left at the default, the run fails unless the project declares `@wordpress/env`. |
 
-When `needs-wp-env` is `true`, the project must contain `package.json` and `package-lock.json`, and must declare `@wordpress/env`: the workflow starts the environment with the project's own `node_modules/.bin/wp-env`, so CI runs the version the lockfile pins rather than one this repository chose. A project without it fails with a named error rather than a missing-command exit. `wp-env-core` takes precedence over `wp-version`, and the stop step runs under `always()`.
+When `needs-wp-env` is `true`, the project must contain `package.json` and `package-lock.json` declaring `@wordpress/env`: the workflow starts the project's own locked wp-env and fails with a named error when it is missing. `wp-env-core` takes precedence over `wp-version`, and the stop step runs under `always()`.
+
+The resulting `WP_ENV_CORE` is set for the whole job, so a Composer script that starts wp-env itself gets the same WordPress as the workflow's own start.
 
 ```yaml
 jobs:
   phpunit:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@vX.Y.Z
 ```
 
 ## Playwright E2E — `.github/workflows/reusable-playwright-e2e.yml`
 
-Installs PHP and Node.js dependencies, builds assets when configured, runs Playwright against wp-env, and uploads a failure report.
+Installs PHP and Node.js dependencies, starts the project's `.wp-env.json` environment, runs `npm run test:e2e`, and uploads a failure report.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. `npm ci` requires `package.json` and `package-lock.json` there, declaring `@wordpress/env` — the workflow starts the environment with the project's own locked binary. |
-| `artifact-slug` | `string` | Yes | — | Label used in the uploaded failure-report artifact name. |
-| `php-version` | `string` | No | `'8.5'` | PHP version. |
-| `wp-version` | `string` | No | `''` | WordPress version tag. An empty value defers to the consumer's `.wp-env.json` `core` setting or wp-env's default stable version. |
+| `wp-version` | `string` | No | `''` | WordPress release to run, as a `WordPress/WordPress` tag name. An empty value defers to the `core` setting in the project's `.wp-env.json`, or wp-env's default, the latest stable release. |
 | `wp-env-core` | `string` | No | `''` | Full `WP_ENV_CORE` value. Overrides `wp-version` and accepts repository refs or ZIP URLs. |
-| `node-version` | `string` | No | `'26'` | Node.js version. |
-| `composer-options` | `string` | No | `'--prefer-dist --no-dev --ignore-platform-req=php+'` | Composer install options. Omit `--no-dev` when a development-mode scoping pipeline populates `dependencies/`. |
-| `build-script` | `string` | No | `'build'` | npm script that builds assets before wp-env starts. An empty value skips the build. |
-| `wp-env-config-file` | `string` | No | `''` | wp-env configuration path relative to `project-path`. An empty value uses `.wp-env.json`. |
-| `playwright-script` | `string` | No | `'test:e2e'` | npm script that runs the Playwright suite. |
 
-The workflow installs and caches Chromium, stops wp-env under `always()`, and uploads `playwright-report-<artifact-slug>` on failure. The required slug prevents artifact-name collisions between multiple E2E jobs in one workflow run.
+The resulting `WP_ENV_CORE` is set for the whole job, as in the PHPUnit workflow. Composer dependencies are installed with development packages included. The workflow runs no build, so the suite exercises the build output committed at the tested commit. It installs and caches Chromium, stops wp-env under `always()`, and uploads the `playwright-report` artifact on failure.
 
 ```yaml
 jobs:
   playwright:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-playwright-e2e.yml@v1.0.0
-    with:
-      artifact-slug: primary
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-playwright-e2e.yml@vX.Y.Z
 ```
 
 ## Release — `.github/workflows/reusable-release.yml`
@@ -162,11 +147,13 @@ Verifies, builds, smoke-tests, and publishes a plugin release as a GitHub releas
 The version check runs first: the plugin header `Version`, the `package.json` `version`, and the first `## ` heading of `CHANGELOG.md` must agree, and on a tag run they must also equal the tag without its `v` prefix. Two branches then run in parallel, and the release publishes only when both succeed:
 
 - **Provenance.** The tagged commit must already have successful `push` runs of `.github/workflows/quality.yml` and `.github/workflows/tests.yml`. A release reuses those results instead of running the suites again, so tag only a commit whose Quality and Tests runs are green.
-- **Build and smoke test.** The build runs `composer changelog:validate`, installs production Composer dependencies, regenerates the POT, and creates the zip. It runs no npm command, so the zip carries the build output committed at the tagged commit. The zip is then installed and activated through [the release smoke test](#release-smoke-test--githubworkflowsreusable-release-smokeyml).
+- **Build and smoke test.** The build runs `composer changelog:validate`, installs production Composer dependencies, regenerates the POT, and creates the zip. It runs no npm command, so the zip carries the build output committed at the tagged commit. The smoke job then installs and activates the zip, together with `extra-plugins`, in a fresh wp-env running `php-version`, fails if activation errors or the site stops serving, and runs each `extra-smoke-commands` entry: everything after `wp`, split into arguments on whitespace, where a non-zero exit fails the job. The artifact differs materially from the tested tree (production dependencies, a regenerated POT, `.distignore` filtering), so it is exercised once before publishing.
 
 Publishing creates the GitHub release with the zip attached and the version's `CHANGELOG.md` section as its notes. A tag containing `-` is published as a prerelease and is not marked as the latest release.
 
 [The scripts contract](scripts-contract.md#release) lists the files and scripts this workflow expects the consumer to provide. The caller must grant `contents: write` and `actions: read`.
+
+The smoke job names a wp-env version of its own, `WP_ENV_VERSION` in the job's `env`. It runs against a downloaded artifact in a directory with no checkout and no `package.json`, so there is no locked binary to defer to the way the PHPUnit and Playwright workflows do.
 
 ```yaml
 on:
@@ -178,50 +165,19 @@ jobs:
     permissions:
       actions: read
       contents: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release.yml@vX.Y.Z
     with:
       plugin-slug: ${{ github.event.repository.name }}
       php-version: '8.5'
 ```
 
-## Release Smoke Test — `.github/workflows/reusable-release-smoke.yml`
-
-Downloads a built plugin zip artifact, installs and activates it in a fresh wp-env, and fails if activation errors or the site stops serving. The release artifact differs materially from the tested tree (production dependencies, a regenerated POT, `.distignore` filtering), so it is exercised once before publishing.
-
-| Input | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `zip-artifact` | `string` | Yes | — | Name of the uploaded artifact containing the built plugin as `<plugin-slug>.zip`. |
-| `plugin-slug` | `string` | Yes | — | The plugin directory slug. Names the zip in the artifact and the directory it unpacks to (`wp dist-archive --plugin-dirname`). |
-| `extra-plugins` | `string` | No | `'[]'` | JSON array of additional wp-env plugin sources (e.g. a host plugin zip URL) installed alongside the artifact. |
-| `php-version` | `string` | No | `''` | PHP version wp-env runs. Must satisfy the plugin header's `Requires PHP`, or WordPress refuses to activate the artifact. An empty value leaves wp-env on its own default. |
-| `extra-smoke-commands` | `string` | No | `'[]'` | JSON array of wp-cli argument strings (everything after `wp`) run as additional smoke assertions, such as `["help my-command"]`. Each entry is split into arguments on whitespace, and a non-zero exit fails the job. |
-| `node-version` | `string` | No | `'26'` | Node.js version for the wp-env CLI. |
-
-The caller must grant `actions: read` so the smoke job can download the build artifact. The workflow stops wp-env under `always()`.
-
-This is the one workflow that names a wp-env version of its own. It runs against a downloaded artifact in a directory with no checkout and no `package.json`, so there is no locked binary to defer to the way the PHPUnit and Playwright workflows do; `WP_ENV_VERSION` at the top of the file is that pin.
-
-```yaml
-jobs:
-  smoke:
-    permissions:
-      actions: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release-smoke.yml@v1.0.0
-    with:
-      zip-artifact: release-zip
-      plugin-slug: ${{ github.event.repository.name }}
-```
-
 ## Scripts/Styles Lint — `.github/workflows/reusable-scripts-styles-lint.yml`
 
-Installs npm dependencies and conditionally runs the configured ESLint, Stylelint, and TypeScript scripts.
+Installs npm dependencies, then runs `npm run lint:scripts` and `npm run lint:styles`, and `npm run lint:types` when `lint-types` is `true`.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. `npm ci` requires `package.json` and `package-lock.json` there. |
-| `node-version` | `string` | No | `'26'` | Node.js version. |
-| `lint-scripts` | `boolean` | No | `true` | Whether to run `npm run lint:scripts` with ESLint. Set `false` for repositories without JavaScript sources. |
-| `lint-styles` | `boolean` | No | `true` | Whether to run `npm run lint:styles` with Stylelint. Set `false` for repositories without CSS sources. |
 | `lint-types` | `boolean` | No | `false` | Whether to run `npm run lint:types` with the TypeScript compiler. Set `true` for repositories with TypeScript sources. |
 
 ```yaml
@@ -229,33 +185,26 @@ jobs:
   scripts-styles:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-scripts-styles-lint.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-scripts-styles-lint.yml@vX.Y.Z
 ```
 
 ## Supply-Chain Audit — `.github/workflows/reusable-supply-chain-audit.yml`
 
-Runs Composer and npm dependency audits as independently gated jobs.
+Audits the committed `composer.lock` and `package-lock.json` in two parallel jobs that always run, without installing anything, so the audit never executes the dependencies it vets.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
-| `php-version` | `string` | No | `'8.5'` | PHP version used for `composer audit`. |
-| `node-version` | `string` | No | `'26'` | Node.js version used for `npm audit`. |
-| `composer-audit` | `boolean` | No | `true` | Whether to run `composer audit`. Set `false` for repositories without `composer.json`; at least one audit must remain enabled. |
-| `npm-audit` | `boolean` | No | `true` | Whether to run `npm audit` after `npm ci`. Set `false` for repositories without `package.json`; a package lock is required. The full dependency graph is audited by default, and at least one audit must remain enabled. |
-| `composer-audit-flags` | `string` | No | `'--abandoned=report'` | Extra `composer audit` flags. The default audits the full graph, fails on security advisories, and reports abandoned packages without failing on them; pass `--no-dev` for production dependencies only. |
-| `composer-options` | `string` | No | `'--prefer-dist --ignore-platform-req=php+'` | Composer options passed to dependency installation. |
-| `npm-audit-flags` | `string` | No | `'--audit-level=high'` | Extra `npm audit` flags. The default audits the full graph, reports low and moderate advisories without failing, and fails on high or critical advisories; pass `--omit=dev` for production dependencies only. |
-| `fail-on-findings` | `boolean` | No | `true` | Whether audit findings fail the job. Set `false` to report findings in the logs without blocking. |
+| `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. Both lock files must be present there. |
 
-Setting `fail-on-findings` to `false` makes valid findings advisory-only. Setting both audit inputs to `false` fails validation instead of reporting success without an audit.
+- `composer audit --locked --abandoned=report` audits the full Composer graph. It fails on any security advisory and reports abandoned packages without failing.
+- `npm audit --audit-level=high --omit=dev` audits the production npm graph. It fails on high or critical advisories and reports low and moderate ones without failing.
 
 ```yaml
 jobs:
   supply-chain:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-supply-chain-audit.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-supply-chain-audit.yml@vX.Y.Z
 ```
 
 ## Workflow Checks — `.github/workflows/reusable-workflow-checks.yml`
@@ -266,9 +215,9 @@ Runs Actionlint and Zizmor static analysis against `.github/workflows/**`.
 | --- | --- | --- | --- | --- |
 | `zizmor-inputs` | `string` | No | `'.'` | The path zizmor audits. Narrow it for consumers that must exclude vendored third-party workflow files. |
 
-The caller must grant `contents: read`, `security-events: write`, and `actions: read`, as shown below; granting less than the called jobs declare causes the workflow call to fail at startup.
+The caller grants `contents: read`, `security-events: write`, and `actions: read`, as shown below; a caller must grant every permission the called jobs declare, or the call fails at startup.
 
-The same `detect-ghas` probe selects the zizmor job's mode: actionlint and the zizmor scan always run regardless of GHAS availability. With GHAS available, zizmor uploads SARIF to the Security tab and a finding-count gate blocks CI (Advanced Security mode never fails the job itself). Without GHAS, the same pinned action runs in native mode — zizmor's own exit code fails the job on any finding, with inline annotations instead of a Security-tab entry; the threshold is identical in both modes.
+A `detect-ghas` probe picks the zizmor mode; actionlint and zizmor always run. With GitHub Advanced Security, zizmor uploads SARIF to the Security tab and a finding-count gate fails the job; without it, zizmor runs in native mode and fails the job itself, with inline annotations. Both modes fail on any finding.
 
 ```yaml
 jobs:
@@ -277,5 +226,5 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-workflow-checks.yml@v1.0.0
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-workflow-checks.yml@vX.Y.Z
 ```
