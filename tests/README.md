@@ -23,9 +23,9 @@ in a real runtime.
 - **Config smokes** (`.github/workflows/quality.yml`) — the shared configs are exercised the way a
   consumer's CI will exercise them: `phpcs -e` and a fixture scan prove `phpcs.dist.xml` parses and
   its `<rule ref>`s resolve; a fixture analysis proves `phpstan.dist.neon` runs; `npm run lint:config`
-  load-smokes all five Node baselines against the installed toolchain; the block.json reusable runs
-  against a schema-valid fixture, and the scripts/styles reusable runs the repo's own `lint:scripts`
-  (styles disabled — the repo has no CSS sources to lint). These are workflow-level, not PHPUnit.
+  load-smokes all five Node baselines against the installed toolchain, beside the repo's own
+  `lint:scripts`; the block.json reusable runs against a schema-valid fixture. These are
+  workflow-level, not PHPUnit.
 
 ## Fixtures
 

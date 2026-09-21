@@ -14,8 +14,8 @@ input.
 
 | Script | Ecosystem | Workflow | Condition |
 | --- | --- | --- | --- |
-| `lint:scripts` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-scripts` input is `true` (default). |
-| `lint:styles` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-styles` input is `true` (default). |
+| `lint:scripts` | npm | `reusable-scripts-styles-lint.yml` | Always runs. |
+| `lint:styles` | npm | `reusable-scripts-styles-lint.yml` | Always runs. |
 | `lint:types` | npm | `reusable-scripts-styles-lint.yml` | Runs when the `lint-types` input is `true`; the input defaults to `false`, so a consumer with TypeScript sources opts in. |
 | `changelog:validate` | composer | `reusable-release.yml` | Runs in every release build, before the production install. |
 | `test:e2e` | npm | `reusable-playwright-e2e.yml` | Runs the Playwright suite once wp-env is up. |

@@ -8,21 +8,6 @@ on:
         type: string
         required: false
         default: '.'
-      node-version:
-        description: 'Node.js version'
-        type: string
-        required: false
-        default: '26'
-      lint-scripts:
-        description: 'Run `npm run lint:scripts` (ESLint). Set false for repos without JS sources.'
-        type: boolean
-        required: false
-        default: true
-      lint-styles:
-        description: 'Run `npm run lint:styles` (Stylelint). Set false for repos without CSS sources.'
-        type: boolean
-        required: false
-        default: true
       lint-types:
         description: 'Run `npm run lint:types` (TypeScript). Set true for repos with TypeScript sources.'
         type: boolean
@@ -45,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: ${{ inputs.node-version }}
+          node-version: '26'
           cache: 'npm'
           cache-dependency-path: ${{ inputs.project-path }}/package-lock.json
 
@@ -54,12 +39,10 @@ jobs:
         run: npm ci
 
       - name: Lint scripts
-        if: ${{ inputs.lint-scripts }}
         working-directory: ${{ inputs.project-path }}
         run: npm run lint:scripts
 
       - name: Lint styles
-        if: ${{ inputs.lint-styles }}
         working-directory: ${{ inputs.project-path }}
         run: npm run lint:styles
 

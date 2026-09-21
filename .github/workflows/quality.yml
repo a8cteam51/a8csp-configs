@@ -15,7 +15,6 @@ on:
       - '.github/workflows/quality.yml'
       - '.github/workflows/reusable-block-json-check.yml'
       - '.github/workflows/reusable-phpunit.yml'
-      - '.github/workflows/reusable-scripts-styles-lint.yml'
       - '.github/workflows/reusable-supply-chain-audit.yml'
   push:
     branches: [trunk]
@@ -32,7 +31,6 @@ on:
       - '.github/workflows/quality.yml'
       - '.github/workflows/reusable-block-json-check.yml'
       - '.github/workflows/reusable-phpunit.yml'
-      - '.github/workflows/reusable-scripts-styles-lint.yml'
       - '.github/workflows/reusable-supply-chain-audit.yml'
   schedule:
     - cron: '41 6 * * 1'
@@ -149,17 +147,8 @@ jobs:
         working-directory: tests/fixtures/plugin-stub
         run: vendor/bin/phpstan analyse -c ../../../php/quality-assurance/phpstan.dist.neon --no-progress
 
-  lint-scripts:
-    name: Lint scripts (ESLint)
-    # Dogfoods the repo's own scripts/styles reusable with lint-styles disabled (no CSS in this repo).
-    permissions:
-      contents: read
-    uses: ./.github/workflows/reusable-scripts-styles-lint.yml
-    with:
-      lint-styles: false
-
   lint-config:
-    name: Node config smokes
+    name: Node lint and config smokes
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -179,6 +168,9 @@ jobs:
 
       - name: Install npm dependencies
         run: npm ci
+
+      - name: Lint scripts
+        run: npm run lint:scripts
 
       - name: Smoke-test shared Node configs
         run: npm run lint:config
