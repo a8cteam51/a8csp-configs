@@ -12,7 +12,6 @@ module.exports = ( ctx ) => {
 			inline: isDevelopment,
 			annotation: true,
 		},
-		parser: false,
 		plugins: [ ...postcssPlugins ],
 	};
 };

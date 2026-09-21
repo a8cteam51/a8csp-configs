@@ -71,15 +71,15 @@ probes.push( [
 			env: 'development',
 			file: { extname: '.scss' },
 		} );
-		if ( false !== scss.parser || 0 === scss.plugins.length ) {
+		if ( 0 === scss.plugins.length ) {
 			throw new Error(
-				'.scss context did not yield the default parser and a non-empty plugin chain'
+				'.scss context did not yield a non-empty plugin chain'
 			);
 		}
 		const css = factory( { env: 'production', file: { extname: '.css' } } );
-		if ( false !== css.parser || 0 === css.plugins.length ) {
+		if ( 0 === css.plugins.length ) {
 			throw new Error(
-				'.css context did not yield the default parser and a non-empty plugin chain'
+				'.css context did not yield a non-empty plugin chain'
 			);
 		}
 	},
