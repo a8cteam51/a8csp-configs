@@ -97,12 +97,10 @@ Installs Composer dependencies, optionally starts a WordPress environment, runs 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
-| `php-version` | `string` | No | `'8.5'` | PHP version for the test run. |
+| `php-version` | `string` | No | `'8.5'` | PHP version on the runner, which runs Composer and any suite that does not use wp-env. Suites inside wp-env run on the `phpVersion` of its config file. |
 | `wp-version` | `string` | No | `''` | WordPress version tag. An empty value defers to the consumer's `.wp-env.json` `core` setting or wp-env's default stable version. |
 | `wp-env-core` | `string` | No | `''` | Full `WP_ENV_CORE` value. Overrides `wp-version` and accepts repository refs or ZIP URLs. |
 | `composer-script` | `string` | No | `'test'` | Composer script invoked for the test run. |
-| `composer-options` | `string` | No | `'--prefer-dist --ignore-platform-req=php+'` | Composer options passed to dependency installation. |
-| `node-version` | `string` | No | `'26'` | Node.js version used by the wp-env CLI. |
 | `wp-env-config-file` | `string` | No | `''` | wp-env configuration path relative to `project-path`. An empty value uses `.wp-env.json`; use a separate file per environment instead of the deprecated implicit development/test split. |
 | `wp-env-xdebug` | `string` | No | `''` | Value passed to `wp-env start --xdebug=<mode>`, such as `coverage`. An empty value starts without Xdebug. |
 | `needs-wp-env` | `boolean` | No | `true` | Whether to run `npm ci` and start and stop wp-env. A caller with a unit-only suite must pass `false`; left at the default, the run fails unless the project declares `@wordpress/env`. |

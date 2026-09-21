@@ -9,7 +9,7 @@ on:
         required: false
         default: '.'
       php-version:
-        description: 'PHP version to run tests against'
+        description: 'PHP version on the runner, which runs Composer and any suite that does not use wp-env. Suites inside wp-env run on the phpVersion of its config file.'
         type: string
         required: false
         default: '8.5'
@@ -28,16 +28,6 @@ on:
         type: string
         required: false
         default: 'test'
-      composer-options:
-        description: 'Composer install options passed to the dependency-install step.'
-        type: string
-        required: false
-        default: '--prefer-dist --ignore-platform-req=php+'
-      node-version:
-        description: 'Node.js version for wp-env CLI'
-        type: string
-        required: false
-        default: '26'
       wp-env-config-file:
         description: 'Path to a wp-env config file (relative to project-path). Leave empty to use the default .wp-env.json. Use a separate file per environment (e.g., .wp-env.tests.json) to migrate off the deprecated implicit dev/tests split.'
         type: string
@@ -78,7 +68,7 @@ jobs:
         if: ${{ inputs.needs-wp-env }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: ${{ inputs.node-version }}
+          node-version: '26'
           cache: 'npm'
           cache-dependency-path: ${{ inputs.project-path }}/package-lock.json
 
@@ -86,7 +76,7 @@ jobs:
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
         with:
           working-directory: ${{ inputs.project-path }}
-          composer-options: ${{ inputs.composer-options }}
+          composer-options: '--prefer-dist --ignore-platform-req=php+'
 
       - name: Install npm dependencies
         if: ${{ inputs.needs-wp-env }}
