@@ -14,7 +14,7 @@ on:
         required: false
         default: '8.5'
       wp-version:
-        description: 'WordPress version tag (e.g., "6.9.4"). Leave empty to defer to the consumer plugin''s .wp-env.json `core` setting (or wp-env''s default latest stable).'
+        description: 'WordPress release to run, as a WordPress/WordPress tag name. Leave empty to defer to the `core` setting in the project''s wp-env config file (or wp-env''s default, the latest stable release).'
         type: string
         required: false
         default: ''

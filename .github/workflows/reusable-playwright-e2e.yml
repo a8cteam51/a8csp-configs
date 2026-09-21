@@ -9,7 +9,7 @@ on:
         required: false
         default: '.'
       wp-version:
-        description: 'WordPress version tag (e.g., "6.9.4"). Leave empty to defer to the consumer plugin''s .wp-env.json `core` setting (or wp-env''s default latest stable).'
+        description: 'WordPress release to run, as a WordPress/WordPress tag name. Leave empty to defer to the `core` setting in the project''s .wp-env.json (or wp-env''s default, the latest stable release).'
         type: string
         required: false
         default: ''
@@ -97,8 +97,8 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report
-          # The shared Playwright base points WP_ARTIFACTS_PATH here, and its reporter is `list`, so
-          # traces and screenshots are the only failure evidence and no HTML report is written.
+          # The shared Playwright base points WP_ARTIFACTS_PATH here, and CI's `github` reporter writes no
+          # HTML report, so traces and screenshots are the failure evidence.
           path: ${{ inputs.project-path }}/tests/.cache/artifacts
           retention-days: 7
 

@@ -5,9 +5,7 @@
 module.exports = ( { port } ) => {
 	// @wordpress/scripts reads both variables while it is being required and derives use.baseURL,
 	// webServer.port, outputDir and the storage-state path from them, which is why the require sits
-	// below them rather than at module scope. `??=` leaves an exported value authoritative, so a
-	// `.wp-env.override.json` port move carries into Playwright instead of it reusing whatever
-	// already listens on the default port.
+	// below them rather than at module scope. `??=` leaves an exported WP_BASE_URL authoritative.
 	process.env.WP_BASE_URL ??= `http://localhost:${ port }`;
 
 	// Keeps Playwright output (storage states, test-results) out of the consumer's repository root.

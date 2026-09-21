@@ -141,7 +141,7 @@ jobs:
           composer changelog:validate
       - name: Install production dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction
-      # wp-cli's own package installer resolves through a composer VCS repository, so it reads the GitHub API and needs a credential composer accepts — and composer rejects some of the tokens Actions mints, which failed releases intermittently. Installing dist-archive from Packagist into its own directory needs no credential, and lets composer pick a version its wp-cli can actually run.
+      # wp-cli's own package installer resolves through a composer VCS repository, which reads the GitHub API and needs a credential composer accepts, and composer rejects some of the tokens Actions mints. Installing dist-archive from Packagist into its own directory needs no credential.
       - name: Install the release tooling
         run: |
           mkdir -p "$RUNNER_TEMP/release-tools"

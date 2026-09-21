@@ -92,7 +92,7 @@ Installs Composer dependencies, optionally starts a WordPress environment, runs 
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
 | `php-version` | `string` | No | `'8.5'` | PHP version on the runner, which runs Composer and any suite that does not use wp-env. Suites inside wp-env run on the `phpVersion` of its config file. |
-| `wp-version` | `string` | No | `''` | WordPress version tag. An empty value defers to the consumer's `.wp-env.json` `core` setting or wp-env's default stable version. |
+| `wp-version` | `string` | No | `''` | WordPress release to run, as a `WordPress/WordPress` tag name. An empty value defers to the `core` setting in the project's wp-env config file, or wp-env's default, the latest stable release. |
 | `wp-env-core` | `string` | No | `''` | Full `WP_ENV_CORE` value. Overrides `wp-version` and accepts repository refs or ZIP URLs. |
 | `composer-script` | `string` | No | `'test'` | Composer script invoked for the test run. |
 | `wp-env-config-file` | `string` | No | `''` | wp-env configuration path relative to `project-path`. An empty value uses `.wp-env.json`; use a separate file per environment instead of the deprecated implicit development/test split. |
@@ -118,7 +118,7 @@ Installs PHP and Node.js dependencies, starts the project's `.wp-env.json` envir
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. `npm ci` requires `package.json` and `package-lock.json` there, declaring `@wordpress/env` — the workflow starts the environment with the project's own locked binary. |
-| `wp-version` | `string` | No | `''` | WordPress version tag. An empty value defers to the consumer's `.wp-env.json` `core` setting or wp-env's default stable version. |
+| `wp-version` | `string` | No | `''` | WordPress release to run, as a `WordPress/WordPress` tag name. An empty value defers to the `core` setting in the project's `.wp-env.json`, or wp-env's default, the latest stable release. |
 | `wp-env-core` | `string` | No | `''` | Full `WP_ENV_CORE` value. Overrides `wp-version` and accepts repository refs or ZIP URLs. |
 
 The resulting `WP_ENV_CORE` is set for the whole job, as in the PHPUnit workflow. Composer dependencies are installed with development packages included. The workflow runs no build, so the suite exercises the build output committed at the tested commit. It installs and caches Chromium, stops wp-env under `always()`, and uploads the `playwright-report` artifact on failure.
