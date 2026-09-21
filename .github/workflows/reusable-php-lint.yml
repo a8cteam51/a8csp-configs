@@ -7,26 +7,11 @@ on:
         description: 'Non-empty JSON array of composer scripts; each runs as its own parallel job.'
         type: string
         required: true
-      php-version:
-        description: 'PHP version to run against.'
-        type: string
-        required: false
-        default: '8.5'
       project-path:
         description: 'Path to the project (relative to repo root).'
         type: string
         required: false
         default: '.'
-      composer-options:
-        description: 'Composer install options passed to the dependency-install step.'
-        type: string
-        required: false
-        default: '--prefer-dist --ignore-platform-req=php+'
-      composer-validate:
-        description: 'Whether to run composer validate --strict, which fails when composer.lock is out of date with composer.json or composer validate reports any warning.'
-        type: boolean
-        required: false
-        default: true
 
 permissions:
   contents: read
@@ -51,7 +36,6 @@ jobs:
   # on, so without this job a stale lock stays green.
   composer-validate:
     name: composer validate
-    if: inputs.composer-validate
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -60,7 +44,7 @@ jobs:
           persist-credentials: false
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          php-version: ${{ inputs.php-version }}
+          php-version: '8.5'
           coverage: none
           tools: composer:v2
       - name: composer validate --strict
@@ -82,13 +66,13 @@ jobs:
           persist-credentials: false
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          php-version: ${{ inputs.php-version }}
+          php-version: '8.5'
           coverage: none
           tools: composer:v2
       - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
         with:
           working-directory: ${{ inputs.project-path }}
-          composer-options: ${{ inputs.composer-options }}
+          composer-options: '--prefer-dist --ignore-platform-req=php+'
       - name: composer ${{ matrix.script }}
         working-directory: ${{ inputs.project-path }}
         env:

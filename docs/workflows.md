@@ -52,12 +52,9 @@ Validates `composer.json` and its lock, installs Composer dependencies, and runs
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `scripts` | `string` | Yes | — | Non-empty JSON array of Composer scripts; each script runs as a parallel job. |
-| `php-version` | `string` | No | `'8.5'` | PHP version for the script jobs. |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
-| `composer-options` | `string` | No | `'--prefer-dist --ignore-platform-req=php+'` | Composer options passed to dependency installation. |
-| `composer-validate` | `boolean` | No | `true` | Whether to run `composer validate --strict` as its own job. It fails when `composer.lock` is out of date with `composer.json` or `composer validate` reports any warning; the dependency install only warns about a stale lock. |
 
-An empty `scripts` array fails validation. Each matrix job invokes its script as `composer "$SCRIPT"`.
+An empty `scripts` array fails validation. Each matrix job invokes its script as `composer "$SCRIPT"` on PHP 8.5. `composer validate --strict` always runs as its own job: it fails when `composer.lock` is out of date with `composer.json` or `composer validate` reports any warning, which the dependency install only warns about.
 
 ```yaml
 jobs:
