@@ -44,14 +44,15 @@ on:
         required: false
         default: true
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   phpunit:
     name: PHPUnit (PHP ${{ inputs.php-version }} / WP ${{ inputs.wp-env-core != '' && inputs.wp-env-core || inputs.wp-version != '' && inputs.wp-version || (inputs.needs-wp-env && 'consumer-default' || 'no-wp-env') }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
     env:
       # Job-level, so a consumer script that starts wp-env again runs the same WordPress as the start step.
       # Override priority: wp-env-core (full value) > wp-version (formatted as tag). Both empty leaves

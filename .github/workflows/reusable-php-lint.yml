@@ -13,14 +13,14 @@ on:
         required: false
         default: '.'
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   validate-inputs:
     name: Validate inputs
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions: {}
     steps:
       # An empty JSON array expands to zero matrix jobs and reports success — a silent skip of the lint.
       - name: Reject an empty scripts array
@@ -38,6 +38,8 @@ jobs:
     name: composer validate
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -56,6 +58,8 @@ jobs:
     needs: validate-inputs
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
