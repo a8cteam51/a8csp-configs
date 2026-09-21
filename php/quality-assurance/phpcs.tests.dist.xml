@@ -7,45 +7,23 @@
 	     is what lets test code carry different rule values — not just different rule membership —
 	     from production code. -->
 
-	<!-- The rules shared with the production profile, floors included. -->
-	<rule ref="./phpcs.base.dist.xml"/>
-
-	<!-- Test-only relaxations: a few sniffs don't apply here — test classes, methods, and
-	     properties carry no docblocks, fixtures legitimately override globals, and test
-	     helpers need no global prefix. This ruleset only ever scans tests/, so each
-	     exclude-pattern below disables the sniff for this entire ruleset. -->
-	<rule ref="Squiz.Commenting.ClassComment">
-		<exclude-pattern>*/tests/*</exclude-pattern>
-	</rule>
-	<rule ref="Squiz.Commenting.VariableComment">
-		<exclude-pattern>*/tests/*</exclude-pattern>
-	</rule>
-	<rule ref="Squiz.Commenting.FunctionComment">
-		<exclude-pattern>*/tests/*</exclude-pattern>
-	</rule>
-	<rule ref="Squiz.Commenting.FunctionCommentThrowTag">
-		<exclude-pattern>*/tests/*</exclude-pattern>
-	</rule>
-	<rule ref="Generic.Commenting.DocComment">
-		<exclude-pattern>*/tests/*</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.WP.GlobalVariablesOverride">
-		<exclude-pattern>*/tests/*</exclude-pattern>
-	</rule>
-	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter">
+	<!-- The rules shared with the production profile, floors included, minus the test-only relaxations. -->
+	<rule ref="./phpcs.base.dist.xml">
+		<!-- Test classes, methods, and properties carry no docblocks. -->
+		<exclude name="Squiz.Commenting.ClassComment"/>
+		<exclude name="Squiz.Commenting.VariableComment"/>
+		<exclude name="Squiz.Commenting.FunctionComment"/>
+		<exclude name="Squiz.Commenting.FunctionCommentThrowTag"/>
+		<exclude name="Generic.Commenting.DocComment"/>
+		<!-- Fixtures legitimately override globals. -->
+		<exclude name="WordPress.WP.GlobalVariablesOverride"/>
 		<!-- Test doubles and recorders must match the signature they stand in for. -->
-		<exclude-pattern>*/tests/*</exclude-pattern>
-	</rule>
-	<rule ref="Generic.Files.OneObjectStructurePerFile">
+		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter"/>
 		<!-- Fixture classes co-locate with the test that owns them. -->
-		<exclude-pattern>*/tests/*</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.Security.EscapeOutput.ExceptionNotEscaped">
+		<exclude name="Generic.Files.OneObjectStructurePerFile"/>
 		<!-- Test exceptions surface in CLI output, not HTML. -->
-		<exclude-pattern>*/tests/*</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.NamingConventions.ValidHookName.UseUnderscores">
+		<exclude name="WordPress.Security.EscapeOutput.ExceptionNotEscaped"/>
 		<!-- Tests fire deliberately malformed hook names at validators. -->
-		<exclude-pattern>*/tests/*</exclude-pattern>
+		<exclude name="WordPress.NamingConventions.ValidHookName.UseUnderscores"/>
 	</rule>
 </ruleset>
