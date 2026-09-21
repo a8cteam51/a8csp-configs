@@ -27,6 +27,13 @@ in a real runtime.
   `lint:scripts`; the block.json reusable runs against a schema-valid fixture. These are
   workflow-level, not PHPUnit.
 
+## Not covered here
+
+This repository's own CI runs five of its reusable workflows: block-json-check, codeql, phpunit,
+supply-chain-audit and workflow-checks. The other five (php-lint, php-syntax-check,
+playwright-e2e, release and scripts-styles-lint) get only actionlint and zizmor here, so a change to
+one of them first runs for real in a consumer's CI.
+
 ## Fixtures
 
 `tests/fixtures/` holds the throwaway inputs the tiers above scan: `plugin-stub/` (a minimal,
