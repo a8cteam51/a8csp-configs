@@ -147,11 +147,13 @@ Verifies, builds, smoke-tests, and publishes a plugin release as a GitHub releas
 The version check runs first: the plugin header `Version`, the `package.json` `version`, and the first `## ` heading of `CHANGELOG.md` must agree, and on a tag run they must also equal the tag without its `v` prefix. Two branches then run in parallel, and the release publishes only when both succeed:
 
 - **Provenance.** The tagged commit must already have successful `push` runs of `.github/workflows/quality.yml` and `.github/workflows/tests.yml`. A release reuses those results instead of running the suites again, so tag only a commit whose Quality and Tests runs are green.
-- **Build and smoke test.** The build runs `composer changelog:validate`, installs production Composer dependencies, regenerates the POT, and creates the zip. It runs no npm command, so the zip carries the build output committed at the tagged commit. The zip is then installed and activated through [the release smoke test](#release-smoke-test--githubworkflowsreusable-release-smokeyml).
+- **Build and smoke test.** The build runs `composer changelog:validate`, installs production Composer dependencies, regenerates the POT, and creates the zip. It runs no npm command, so the zip carries the build output committed at the tagged commit. The smoke job then installs and activates the zip, together with `extra-plugins`, in a fresh wp-env running `php-version`, fails if activation errors or the site stops serving, and runs each `extra-smoke-commands` entry: everything after `wp`, split into arguments on whitespace, where a non-zero exit fails the job. The artifact differs materially from the tested tree (production dependencies, a regenerated POT, `.distignore` filtering), so it is exercised once before publishing.
 
 Publishing creates the GitHub release with the zip attached and the version's `CHANGELOG.md` section as its notes. A tag containing `-` is published as a prerelease and is not marked as the latest release.
 
 [The scripts contract](scripts-contract.md#release) lists the files and scripts this workflow expects the consumer to provide. The caller must grant `contents: write` and `actions: read`.
+
+The smoke job names a wp-env version of its own, `WP_ENV_VERSION` in the job's `env`. It runs against a downloaded artifact in a directory with no checkout and no `package.json`, so there is no locked binary to defer to the way the PHPUnit and Playwright workflows do.
 
 ```yaml
 on:
@@ -167,34 +169,6 @@ jobs:
     with:
       plugin-slug: ${{ github.event.repository.name }}
       php-version: '8.5'
-```
-
-## Release Smoke Test — `.github/workflows/reusable-release-smoke.yml`
-
-Downloads a built plugin zip artifact, installs and activates it in a fresh wp-env, and fails if activation errors or the site stops serving. The release artifact differs materially from the tested tree (production dependencies, a regenerated POT, `.distignore` filtering), so it is exercised once before publishing.
-
-| Input | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `zip-artifact` | `string` | Yes | — | Name of the uploaded artifact containing the built plugin as `<plugin-slug>.zip`. |
-| `plugin-slug` | `string` | Yes | — | The plugin directory slug. Names the zip in the artifact and the directory it unpacks to (`wp dist-archive --plugin-dirname`). |
-| `extra-plugins` | `string` | No | `'[]'` | JSON array of additional wp-env plugin sources (e.g. a host plugin zip URL) installed alongside the artifact. |
-| `php-version` | `string` | No | `''` | PHP version wp-env runs. Must satisfy the plugin header's `Requires PHP`, or WordPress refuses to activate the artifact. An empty value leaves wp-env on its own default. |
-| `extra-smoke-commands` | `string` | No | `'[]'` | JSON array of wp-cli argument strings (everything after `wp`) run as additional smoke assertions, such as `["help my-command"]`. Each entry is split into arguments on whitespace, and a non-zero exit fails the job. |
-| `node-version` | `string` | No | `'26'` | Node.js version for the wp-env CLI. |
-
-The caller must grant `actions: read` so the smoke job can download the build artifact. The workflow stops wp-env under `always()`.
-
-This is the one workflow that names a wp-env version of its own. It runs against a downloaded artifact in a directory with no checkout and no `package.json`, so there is no locked binary to defer to the way the PHPUnit and Playwright workflows do; `WP_ENV_VERSION` at the top of the file is that pin.
-
-```yaml
-jobs:
-  smoke:
-    permissions:
-      actions: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release-smoke.yml@v1.0.0
-    with:
-      zip-artifact: release-zip
-      plugin-slug: ${{ github.event.repository.name }}
 ```
 
 ## Scripts/Styles Lint — `.github/workflows/reusable-scripts-styles-lint.yml`

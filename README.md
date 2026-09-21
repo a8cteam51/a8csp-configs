@@ -81,7 +81,7 @@ Import or require the JavaScript configs by their export paths, and use the Type
 
 ## Reusable workflows
 
-The reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, plugin releases, release smoke tests, script and style linting, supply-chain audits, and workflow checks. The release workflow and its smoke test are plugin-only. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
+The reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, plugin releases, script and style linting, supply-chain audits, and workflow checks. The release workflow is plugin-only. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
 
 A caller references a workflow from its own workflow file and pins the reference to a tag:
 

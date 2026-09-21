@@ -108,5 +108,5 @@ consumer's repository. Only the entry file can be changed through a `workflow_ca
 
 ## Out of scope
 
-The reusable release-smoke workflow runs no consumer-defined script: it installs and activates the
+The release workflow's smoke job runs no consumer-defined script: it installs and activates the
 built artifact through wp-env.
