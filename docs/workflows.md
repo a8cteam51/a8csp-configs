@@ -234,21 +234,14 @@ jobs:
 
 ## Supply-Chain Audit — `.github/workflows/reusable-supply-chain-audit.yml`
 
-Runs Composer and npm dependency audits as independently gated jobs.
+Audits the committed `composer.lock` and `package-lock.json` as two independently gated jobs, without installing anything, so the audit never executes the dependencies it vets.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
-| `php-version` | `string` | No | `'8.5'` | PHP version used for `composer audit`. |
-| `node-version` | `string` | No | `'26'` | Node.js version used for `npm audit`. |
-| `composer-audit` | `boolean` | No | `true` | Whether to run `composer audit`. Set `false` for repositories without `composer.json`; at least one audit must remain enabled. |
-| `npm-audit` | `boolean` | No | `true` | Whether to run `npm audit` after `npm ci`. Set `false` for repositories without `package.json`; a package lock is required. The full dependency graph is audited by default, and at least one audit must remain enabled. |
-| `composer-audit-flags` | `string` | No | `'--abandoned=report'` | Extra `composer audit` flags. The default audits the full graph, fails on security advisories, and reports abandoned packages without failing on them; pass `--no-dev` for production dependencies only. |
-| `composer-options` | `string` | No | `'--prefer-dist --ignore-platform-req=php+'` | Composer options passed to dependency installation. |
-| `npm-audit-flags` | `string` | No | `'--audit-level=high'` | Extra `npm audit` flags. The default audits the full graph, reports low and moderate advisories without failing, and fails on high or critical advisories; pass `--omit=dev` for production dependencies only. |
-| `fail-on-findings` | `boolean` | No | `true` | Whether audit findings fail the job. Set `false` to report findings in the logs without blocking. |
+| `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. Both lock files must be present there. |
 
-Setting `fail-on-findings` to `false` makes valid findings advisory-only. Setting both audit inputs to `false` fails validation instead of reporting success without an audit.
+- `composer audit --locked --abandoned=report` audits the full Composer graph. It fails on any security advisory and reports abandoned packages without failing.
+- `npm audit --audit-level=high --omit=dev` audits the production npm graph. It fails on high or critical advisories and reports low and moderate ones without failing.
 
 ```yaml
 jobs:

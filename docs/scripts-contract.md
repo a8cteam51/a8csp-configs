@@ -50,7 +50,7 @@ the job uses the name; one that does not have the job omits the script.
 | `packages-install` | composer, npm | Installs dependencies for local work. The composer copy passes `--ignore-platform-req=php+`, so a PHP newer than the declared floor still installs. |
 | `packages-update` | composer, npm | Updates dependencies within the declared constraints. |
 | `packages-update:wp` | npm | Moves the `@wordpress/*` packages onto the dist-tag for the supported WordPress version. |
-| `audit` | npm | Runs the Composer and npm audits together, with the same flags the caller passes `reusable-supply-chain-audit.yml`, so a local run and CI agree. |
+| `audit` | npm | Runs the Composer and npm audits together, with the flags `reusable-supply-chain-audit.yml` uses, so a local run and CI agree. |
 | `check:engines` | npm | Checks the running Node and npm against the `engines` field. |
 | `check:licenses` | npm | Checks dependency licenses. |
 | `format:php` | composer | Rewrites PHP with `phpcbf` against the repository's own ruleset. |
