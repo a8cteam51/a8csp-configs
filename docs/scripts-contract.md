@@ -1,8 +1,9 @@
 # Scripts contract
 
-This document names the composer and npm script identifiers the reusable workflows in this
-repository treat as their interface. A consuming project's `composer.json` and `package.json`
-scripts must use these names for the corresponding reusable workflow to find and run them. It also
+This document names the composer and npm script identifiers the reusable workflows and shared
+configs in this repository treat as their interface. A consuming project's `composer.json` and
+`package.json` scripts must use these names for the corresponding workflow or config to find and
+run them. It also
 lists the files the release workflow reads from the consumer's tree, the names the fleet shares by
 convention alone, and the PHPUnit configuration every repository copies.
 
