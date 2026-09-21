@@ -27,13 +27,7 @@ The following breaking changes are not permitted as routine changes:
 
 Changes to the PHP and WordPress version floors are the sanctioned exception to the additive or permissive rule. The floors are enforced by the `testVersion` and `minimum_wp_version` values in `php/quality-assurance/phpcs.base.dist.xml`, which both PHPCS rulesets include.
 
-PHPCS fixes an included ruleset's `<config>` values when it loads them. A consuming ruleset's own `<config>` elements therefore cannot override these values, regardless of declaration order. A consumer that is not ready for a raised floor must set its required values with `--runtime-set` in its own PHPCS CLI invocation. Only `--runtime-set` has precedence over ruleset-level configuration.
-
-The consumer sets `testVersion` and `minimum_wp_version` with `--runtime-set` on its own `phpcs` invocation, typically in its `composer.json` lint script.
-
-## Reusable workflow inputs
-
-An existing `workflow_call` input name is frozen once it ships in a tag. Renaming or removing an input requires a major-version discussion before implementation; it must not be introduced in a silent pull request. Adding an optional input with a default is backwards-compatible.
+PHPCS fixes an included ruleset's `<config>` values when it loads them. A consuming ruleset's own `<config>` elements therefore cannot override these values, regardless of declaration order. A consumer that is not ready for a raised floor must set its required values with `--runtime-set` in its own PHPCS CLI invocation, typically in its `composer.json` lint script. Only `--runtime-set` has precedence over ruleset-level configuration.
 
 ## npm peer dependencies
 
