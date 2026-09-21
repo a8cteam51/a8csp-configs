@@ -48,6 +48,12 @@ Point the consumer's PHPCS ruleset at:
 <rule ref="vendor/a8csp/configs/php/quality-assurance/phpcs.dist.xml" />
 ```
 
+That production profile excludes `tests/`. Lint test code with a second, tests-only ruleset that points at the companion profile, and run it as its own PHPCS invocation (the `lint:php:phpcs:tests` script in [the scripts contract](scripts-contract.md)); without it, test code goes unchecked:
+
+```xml
+<rule ref="vendor/a8csp/configs/php/quality-assurance/phpcs.tests.dist.xml" />
+```
+
 Point the consumer's PHPStan configuration at:
 
 ```neon
@@ -55,7 +61,7 @@ includes:
     - vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
 ```
 
-These are the canonical and only ruleset paths in this package. It has no legacy `quality-assurance/` shim path, unlike `a8cteam51/team51-configs`.
+These are the canonical ruleset paths in this package. It has no legacy `quality-assurance/` shim path, unlike `a8cteam51/team51-configs`.
 
 ## PHPStan entry file
 
