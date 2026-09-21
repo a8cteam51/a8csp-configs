@@ -1,5 +1,5 @@
 name: Workflow Checks
-# Callers wanting Security-tab SARIF upload must grant `security-events: write`.
+# Callers grant `contents: read`, `actions: read` and `security-events: write`; a caller must grant every permission the called jobs declare, or the call fails at startup.
 
 on:
   workflow_call:
