@@ -48,3 +48,7 @@ This package uses real semantic-version Git tags in the form `vX.Y.Z`. A maintai
 - **PATCH**: bug fixes and non-behavioral or documentation fixes.
 - **MINOR**: additive or permissive changes, including a new optional input, a new ruleset or file, a new opt-in rule, or a loosened rule.
 - **MAJOR**: the sanctioned version-floor-raise path, or a breaking input rename or removal that went through a major-version discussion before implementation.
+
+### Tool runtimes
+
+The reusable workflows run their tools on PHP and Node versions this package fixes, including the defaults of their version inputs. A consumer's floors, not these runtimes, decide what its code is checked against, so a newer runtime keeps checking code written for older floors. Moving a runtime forward is a MINOR change once both reference consumers under [Consumer validation](#consumer-validation) pass their gates on it. A move that requires consumers to change is a MAJOR change.
