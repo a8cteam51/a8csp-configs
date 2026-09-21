@@ -127,8 +127,7 @@ jobs:
       - name: Install dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
 
-      # phpstan.dist.neon includes phpstan.dist.neon.php, which discovers paths via getcwd(), so the
-      # fixture (not the repo root) is cwd.
+      # phpstan.dist.neon.php discovers paths via getcwd(), so the fixture is the working directory.
       - name: Analyze fixture with php/quality-assurance/phpstan.dist.neon
         working-directory: tests/fixtures/plugin-stub
         run: ../../../vendor/bin/phpstan analyse -c ../../../php/quality-assurance/phpstan.dist.neon --no-progress
