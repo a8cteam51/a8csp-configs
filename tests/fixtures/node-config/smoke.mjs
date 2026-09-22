@@ -48,6 +48,38 @@ probes.push( [
 				filePath: resolve( probePath ),
 			} );
 		}
+
+		// The test-unit glob is extension-scoped, so every script extension the base lints must
+		// still get the Jest rules, while a Jest snapshot or a JSON fixture must not be linted at all.
+		for ( const extension of [
+			'js',
+			'jsx',
+			'ts',
+			'tsx',
+			'mjs',
+			'cjs',
+			'mts',
+			'cts',
+		] ) {
+			const config = await eslint.calculateConfigForFile(
+				resolve(
+					`tests/fixtures/node-config/probe.test.${ extension }`
+				)
+			);
+			if ( ! config?.rules?.[ 'jest/expect-expect' ] ) {
+				throw new Error(
+					`probe.test.${ extension } does not get the test-unit rules`
+				);
+			}
+		}
+		for ( const name of [ 'probe.test.js.snap', 'probe.test.json' ] ) {
+			const config = await eslint.calculateConfigForFile(
+				resolve( `tests/fixtures/node-config/${ name }` )
+			);
+			if ( undefined !== config ) {
+				throw new Error( `${ name } is linted as a script` );
+			}
+		}
 	},
 ] );
 
