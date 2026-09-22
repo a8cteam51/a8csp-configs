@@ -22,6 +22,12 @@ Update the existing `repositories` VCS entry, or add one, to point at `https://g
   "require-dev": {
     "a8csp/configs": "vX.Y.Z",
     "roave/security-advisories": "dev-latest"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "phpstan/extension-installer": true
+    }
   }
 }
 ```
@@ -45,6 +51,8 @@ The shared ruleset runs PHPCompatibilityWP, and this package accepts either the 
 ```
 
 Without these root-side requirements, Composer resolves the stable releases, whose sniffs do not cover current PHP syntax — `testVersion`-based checks then pass vacuously.
+
+Keep both `allow-plugins` entries, which a project that required `a8cteam51/team51-configs` usually has already: Composer honors them only in the root package and aborts a non-interactive install on any plugin they do not allow, and these two plugins register the PHPCS standards the shared rulesets name and load the PHPStan extensions, including the WordPress stubs.
 
 ## Ruleset paths
 
