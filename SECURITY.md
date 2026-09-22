@@ -6,4 +6,4 @@ Use GitHub private vulnerability reporting for `a8cteam51/a8csp-configs`. Open t
 
 ## Consuming this package
 
-Pin release tags as [the README](README.md#versioning) describes. [CONTRIBUTING.md](CONTRIBUTING.md) holds the backwards-compatibility and release contract.
+Pin releases as [the README](README.md#versioning) describes. [CONTRIBUTING.md](CONTRIBUTING.md) holds the backwards-compatibility and release contract.

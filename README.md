@@ -16,7 +16,7 @@ The PHP quality-assurance configs live in `php/quality-assurance/`:
 
 The package is not published on Packagist; it resolves from its GitHub repository through the `repositories` entry.
 
-Require an immutable release tag in the consuming project's `composer.json`:
+Require the current major in the consuming project's `composer.json`; `composer.lock` records the exact release:
 
 ```json
 {
@@ -24,7 +24,7 @@ Require an immutable release tag in the consuming project's `composer.json`:
     { "type": "vcs", "url": "https://github.com/a8cteam51/a8csp-configs" }
   ],
   "require-dev": {
-    "a8csp/configs": "vX.Y.Z",
+    "a8csp/configs": "^1",
     "roave/security-advisories": "dev-latest",
     "phpcompatibility/phpcompatibility-wp": "^3@alpha",
     "phpcompatibility/php-compatibility": "^10@alpha",
@@ -67,12 +67,12 @@ The shared PHPStan config includes `phpstan.dist.neon.php` automatically. The co
 
 ## `node/` configs
 
-Install the package as an npm Git dependency pinned to a release tag:
+Install the package as an npm Git dependency on the current major's release tags; `package-lock.json` records the exact release:
 
 ```json
 {
   "devDependencies": {
-    "@a8csp/configs": "github:a8cteam51/a8csp-configs#vX.Y.Z"
+    "@a8csp/configs": "github:a8cteam51/a8csp-configs#semver:^1"
   }
 }
 ```
@@ -108,7 +108,7 @@ jobs:
 
 ## Versioning
 
-Consumers pin the Composer requirement and the npm dependency to an immutable release tag in `vX.Y.Z` form, and each reusable-workflow `uses:` reference to that release's full commit SHA with the tag as a comment, the only pin the zizmor check in Workflow Checks accepts; [the workflow reference](docs/workflows.md) shows how to look the SHA up. `trunk` is the development branch and may break between tags.
+Consumers require the Composer and npm packages at the current major (`^1`), and their lock files record the exact release. Each reusable-workflow `uses:` reference pins a release's full commit SHA with the tag as a comment, the only pin the zizmor check in Workflow Checks accepts; [the workflow reference](docs/workflows.md) shows how to look the SHA up. `trunk` is the development branch and may break between tags.
 
 Only the latest major version receives fixes; see [supported versions](CONTRIBUTING.md#supported-versions).
 

@@ -10,7 +10,7 @@ A migrated project can keep its own PHP and WordPress floors, as [Version floors
 
 ## Composer package
 
-Replace the `a8cteam51/team51-configs` entry in the appropriate `composer.json` requirement section with `a8csp/configs`, pinned to an immutable semantic-version tag.
+Replace the `a8cteam51/team51-configs` entry in the appropriate `composer.json` requirement section with `a8csp/configs` at the current major.
 
 Update the existing `repositories` VCS entry, or add one, to point at `https://github.com/a8cteam51/a8csp-configs` instead of the legacy `team51-configs` repository:
 
@@ -20,7 +20,7 @@ Update the existing `repositories` VCS entry, or add one, to point at `https://g
     { "type": "vcs", "url": "https://github.com/a8cteam51/a8csp-configs" }
   ],
   "require-dev": {
-    "a8csp/configs": "vX.Y.Z",
+    "a8csp/configs": "^1",
     "roave/security-advisories": "dev-latest"
   },
   "config": {
