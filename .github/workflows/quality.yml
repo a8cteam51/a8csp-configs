@@ -128,14 +128,18 @@ jobs:
         run: |
           set -e -o pipefail
           cp -R tests/fixtures/phpcs-exclusions "$RUNNER_TEMP/phpcs-exclusions"
-          # The JSON report lists every processed file, clean or not; a reported fixture exits non-zero, so the file list below is the gate.
+          # The JSON report lists every processed file, clean or not; a reported fixture exits non-zero, so the checks below are the gate.
           vendor/bin/phpcs -q --no-colors --report=json --basepath="$RUNNER_TEMP/phpcs-exclusions" --standard=php/quality-assurance/phpcs.dist.xml "$RUNNER_TEMP/phpcs-exclusions" > phpcs-exclusions.json || true
           jq -r '.files | keys[]' phpcs-exclusions.json | sort > phpcs-exclusions-scanned.txt
-          printf '%s\n' includes/class-asset.php src/Asset.php src/Assets/Asset.php src/ScriptAsset.php | sort > phpcs-exclusions-expected.txt
+          printf '%s\n' includes/class-asset.php patterns/example.php src/Asset.php src/Assets/Asset.php src/Bin/Command.php src/Dependencies/Container.php src/Patterns/Registry.php src/ScriptAsset.php src/Search/Index.php src/Tests/Harness.php src/Vendor/Payout.php | sort > phpcs-exclusions-expected.txt
           skipped=$(comm -13 phpcs-exclusions-scanned.txt phpcs-exclusions-expected.txt | paste -sd ' ' -)
           unskipped=$(comm -23 phpcs-exclusions-scanned.txt phpcs-exclusions-expected.txt | paste -sd ' ' -)
           [ -z "$skipped" ] || { echo "::error::the exclude-patterns skip files that must be scanned: $skipped"; exit 1; }
           [ -z "$unskipped" ] || { echo "::error::the exclude-patterns scan files that must be skipped: $unskipped"; exit 1; }
+          # Both files declare the same undocumented class; only the lowercase block-pattern folder drops the WordPress-Docs sniffs.
+          has_code() { jq -e --arg file "$1" --arg code "$2" '.files[$file].messages | any(.source == $code)' phpcs-exclusions.json > /dev/null; }
+          has_code src/Patterns/Registry.php Squiz.Commenting.ClassComment.Missing || { echo "::error::src/Patterns/Registry.php loses the WordPress-Docs sniffs to the patterns/ exclusion"; exit 1; }
+          ! has_code patterns/example.php Squiz.Commenting.ClassComment.Missing || { echo "::error::patterns/example.php gets the WordPress-Docs sniffs its exclusion drops"; exit 1; }
 
   phpstan-smoke:
     name: PHPStan dist-file smoke test
