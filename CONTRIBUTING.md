@@ -39,7 +39,7 @@ The `node/` configs import the packages listed under `peerDependencies`, and a c
 
 ## CI gates
 
-Changes under `.github/workflows/**` must pass actionlint and zizmor through `.github/workflows/reusable-workflow-checks.yml`, as invoked by `.github/workflows/workflow-checks.yml`.
+Changes under `.github/workflows/**` and to `.github/dependabot.yml` must pass actionlint and zizmor through `.github/workflows/reusable-workflow-checks.yml`, as invoked by `.github/workflows/workflow-checks.yml`; zizmor audits the Dependabot config as well as the workflows.
 
 ## Consumer validation
 

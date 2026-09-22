@@ -209,7 +209,7 @@ jobs:
 
 ## Workflow Checks — `.github/workflows/reusable-workflow-checks.yml`
 
-Runs Actionlint and Zizmor static analysis against `.github/workflows/**`.
+Runs actionlint over `.github/workflows/**`, and zizmor static analysis over the `zizmor-inputs` path, where it audits workflows, composite actions and Dependabot config.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
