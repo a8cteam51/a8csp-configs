@@ -4,7 +4,7 @@ This document is the per-workflow `workflow_call` input reference for the reusab
 
 ## block.json Schema Check — `.github/workflows/reusable-block-json-check.yml`
 
-Finds `block.json` files under the project path and validates each one against the WordPress `block.json` schema from `schemas.wp.org`.
+Finds `block.json` files under the project path and validates each one against the `block.json` schema that `schemas.wp.org` publishes for this package's [WordPress floor](../README.md#supported-floors).
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
