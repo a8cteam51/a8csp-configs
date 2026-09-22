@@ -113,7 +113,7 @@ jobs:
 
 ## Playwright E2E — `.github/workflows/reusable-playwright-e2e.yml`
 
-Installs PHP and Node.js dependencies, starts the project's `.wp-env.json` environment, runs `npm run test:e2e`, and uploads a failure report.
+Installs PHP and Node.js dependencies, starts the project's `.wp-env.json` environment, runs `npm run test:e2e`, and, for a suite that extends the shared Playwright base, uploads a failure report.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
