@@ -19,9 +19,10 @@ a WordPress runtime.
 - **Config smokes** (`.github/workflows/quality.yml`) — workflow-level, not PHPUnit: `phpcs -e` and
   fixture scans prove both PHPCS profiles parse and resolve; a scan at the shared floors and one
   with both lowered through `--runtime-set` prove a consumer can keep its own PHP and WordPress
-  floors; a fixture analysis proves `phpstan.dist.neon` runs; `npm run lint:config` load-smokes
-  the Node baselines against the installed toolchain, beside the repository's own `lint:scripts`;
-  the block.json workflow runs against a schema-valid fixture.
+  floors; a scan of a mixed file tree proves the exclude-patterns skip only generated and
+  third-party files; a fixture analysis proves `phpstan.dist.neon` runs; `npm run lint:config`
+  load-smokes the Node baselines against the installed toolchain, beside the repository's own
+  `lint:scripts`; the block.json workflow runs against a schema-valid fixture.
 
 ## Not covered here
 
@@ -35,8 +36,9 @@ and CodeQL), so a change to one of them first runs for real in a consumer's CI.
 `tests/fixtures/` holds the inputs the tiers above scan: `plugin-stub/` (a minimal,
 standards-compliant plugin for the PHPCS and PHPStan smokes), `php-compat/` (deprecated constructs
 the PHPCompatibility check must flag), `floor-opt-out/` (one construct per floor whose report
-changes when a consumer lowers that floor), `node-config/` (the `smoke.mjs` harness and its probe
-inputs), and `block-json/` (a schema-valid block).
+changes when a consumer lowers that floor), `phpcs-exclusions/` (hand-written files the shared
+exclude-patterns must scan, beside generated and third-party ones they must skip), `node-config/`
+(the `smoke.mjs` harness and its probe inputs), and `block-json/` (a schema-valid block).
 
 `wp-env-consumer/` is a working project rather than an input, with its own `composer.json`,
 `package.json` and lockfile, because the workflow under test installs and runs a consumer's
