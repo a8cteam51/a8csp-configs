@@ -228,3 +228,18 @@ jobs:
       security-events: write
     uses: a8cteam51/a8csp-configs/.github/workflows/reusable-workflow-checks.yml@vX.Y.Z
 ```
+
+### Pinning to a tag
+
+zizmor's default `unpinned-uses` policy requires a full commit SHA on every `uses:` reference, reusable-workflow calls included, so each call to this repository pinned to a `vX.Y.Z` tag, as the examples in this reference are, fails the check. A caller that pins these workflows to tags adds a `.github/zizmor.yml` that allows ref pins for this repository and keeps hash pins everywhere else:
+
+```yaml
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        a8cteam51/a8csp-configs/*: ref-pin
+        "*": hash-pin
+```
+
+A caller that pins these workflows by full commit SHA instead needs no policy.

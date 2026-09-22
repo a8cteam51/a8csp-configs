@@ -98,7 +98,7 @@ jobs:
 
 ## Versioning
 
-Consumers should pin Composer requirements and reusable-workflow `uses:` references to immutable semver tags in `vX.Y.Z` form. `trunk` is the development branch and may break between tags. A full commit SHA is also an acceptable immutable pin for a reusable-workflow `uses:` reference.
+Consumers should pin Composer requirements and reusable-workflow `uses:` references to immutable semver tags in `vX.Y.Z` form. `trunk` is the development branch and may break between tags. A full commit SHA is also an acceptable immutable pin for a reusable-workflow `uses:` reference. The zizmor check in Workflow Checks rejects a tag-pinned `uses:` by default, so a consumer that pins to tags adds the policy that [Pinning to a tag](docs/workflows.md#pinning-to-a-tag) shows.
 
 Only the latest major version receives fixes; see [supported versions](CONTRIBUTING.md#supported-versions).
 
