@@ -29,6 +29,12 @@ Require an immutable release tag in the consuming project's `composer.json`:
     "phpcompatibility/phpcompatibility-wp": "^3@alpha",
     "phpcompatibility/php-compatibility": "^10@alpha",
     "phpcompatibility/phpcompatibility-paragonie": "^2@alpha"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "phpstan/extension-installer": true
+    }
   }
 }
 ```
@@ -36,6 +42,8 @@ Require an immutable release tag in the consuming project's `composer.json`:
 The `roave/security-advisories` line is mandatory. This package requires `roave/security-advisories` so that no consumer can install a dependency version with a known security advisory. That package has no stable release, and Composer honors stability flags only in the root package, so under the default `minimum-stability` of `stable`, Composer refuses to install `a8csp/configs` without the root line.
 
 The three `phpcompatibility/*` lines are mandatory as well. The shared ruleset runs PHPCompatibilityWP, and this package accepts either the stable or the pre-release majors of those packages, because only the consumer's root requirements can select the pre-release majors that sniff current PHP syntax. Without those root-side requirements Composer resolves the stable releases, whose sniffs do not cover current PHP syntax — the `testVersion` checks then pass vacuously.
+
+The `allow-plugins` entries are mandatory too: Composer honors them only in the root package and aborts a non-interactive install on any plugin they do not allow, and these two plugins register the PHPCS standards the shared rulesets name and load the PHPStan extensions, including the WordPress stubs.
 
 Reference the shared PHPCS ruleset from the consumer's `.phpcs.xml`:
 
@@ -50,19 +58,21 @@ Include the shared PHPStan config from the consumer's `.phpstan.neon`:
 
 ```neon
 includes:
-    - vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
+    - %currentWorkingDirectory%/vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
 ```
+
+The `%currentWorkingDirectory%` anchor keeps the include valid from a config in a subdirectory, such as a site repository's per-theme `.phpstan.neon`: PHPStan resolves a bare relative include against the including file's directory, and the shared config expects PHPStan to run from the repository root.
 
 The shared PHPStan config includes `phpstan.dist.neon.php` automatically. The consumer declares `parameters.paths` for its plugin entry file (and any source directory outside the conventional set) and `WPCompat.pluginFile` — or `requiresAtLeast` — explicitly in its own config; this package contributes the analysis rules, WordPress stubs (through its phpstan-wordpress dependency), scoped-dependency scanning, and detection of conventional root files and source directories.
 
 ## `node/` configs
 
-Install the package as an npm Git dependency. Use a release tag for normal consumption or a full commit SHA when testing an exact revision:
+Install the package as an npm Git dependency pinned to a release tag:
 
 ```json
 {
   "devDependencies": {
-    "@a8csp/configs": "github:a8cteam51/a8csp-configs#<tag-or-sha>"
+    "@a8csp/configs": "github:a8cteam51/a8csp-configs#vX.Y.Z"
   }
 }
 ```
@@ -83,12 +93,12 @@ Import or require the JavaScript configs by their export paths, and use the Type
 
 The reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, plugin releases, script and style linting, supply-chain audits, and workflow checks. The release workflow is plugin-only. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
 
-A caller references a workflow from its own workflow file and pins the reference to a tag:
+A caller references a workflow from its own workflow file and pins the reference to a release's full commit SHA, with the tag as a comment:
 
 ```yaml
 jobs:
   phpunit:
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## Supported floors
@@ -98,7 +108,7 @@ jobs:
 
 ## Versioning
 
-Consumers should pin Composer requirements and reusable-workflow `uses:` references to immutable semver tags in `vX.Y.Z` form. `trunk` is the development branch and may break between tags. A full commit SHA is also an acceptable immutable pin for a reusable-workflow `uses:` reference.
+Consumers pin the Composer requirement and the npm dependency to an immutable release tag in `vX.Y.Z` form, and each reusable-workflow `uses:` reference to that release's full commit SHA with the tag as a comment, the only pin the zizmor check in Workflow Checks accepts; [the workflow reference](docs/workflows.md) shows how to look the SHA up. `trunk` is the development branch and may break between tags.
 
 Only the latest major version receives fixes; see [supported versions](CONTRIBUTING.md#supported-versions).
 

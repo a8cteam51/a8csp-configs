@@ -69,7 +69,9 @@ jobs:
       - name: Resolve Playwright version
         id: playwright
         working-directory: ${{ inputs.project-path }}
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+        run: |
+          version=$(node -p "require('@playwright/test/package.json').version") || { echo "::error::@playwright/test is not installed in this project — add it to devDependencies."; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Cache Playwright browsers
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0

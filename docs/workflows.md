@@ -2,9 +2,11 @@
 
 This document is the per-workflow `workflow_call` input reference for the reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#backwards-compatibility-contract) keep existing inputs stable until a major release, except that a [tool runtime move](../CONTRIBUTING.md#tool-runtimes) may raise a version input's default in a minor release; additional inputs must be optional and define a default.
 
+Every example pins its call by the full commit SHA of a release, with the release tag as a comment: zizmor, which Workflow Checks runs, rejects any `uses:` reference that is not pinned to a commit SHA. `gh api repos/a8cteam51/a8csp-configs/commits/vX.Y.Z --jq .sha` prints a release's commit SHA.
+
 ## block.json Schema Check — `.github/workflows/reusable-block-json-check.yml`
 
-Finds `block.json` files under the project path and validates each one against the WordPress `block.json` schema from `schemas.wp.org`.
+Finds `block.json` files under the project path and validates each one against the trunk `block.json` schema from `schemas.wp.org`.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -17,7 +19,7 @@ jobs:
   block-json:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-block-json-check.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-block-json-check.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## CodeQL — `.github/workflows/reusable-codeql.yml`
@@ -39,7 +41,7 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-codeql.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-codeql.yml@<release-commit-sha> # vX.Y.Z
     with:
       languages: '["actions", "javascript-typescript"]'
 ```
@@ -60,7 +62,7 @@ jobs:
   php-lint:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-lint.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-lint.yml@<release-commit-sha> # vX.Y.Z
     with:
       scripts: '["lint:php:phpcs", "lint:php:phpcs:tests", "lint:php:phpstan"]'
 ```
@@ -81,7 +83,7 @@ jobs:
   php-syntax:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-syntax-check.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-syntax-check.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## PHPUnit — `.github/workflows/reusable-phpunit.yml`
@@ -101,19 +103,19 @@ Installs Composer dependencies, optionally starts a WordPress environment, runs 
 
 When `needs-wp-env` is `true`, the project must contain `package.json` and `package-lock.json` declaring `@wordpress/env`: the workflow starts the project's own locked wp-env and fails with a named error when it is missing. `wp-env-core` takes precedence over `wp-version`, and the stop step runs under `always()`.
 
-The resulting `WP_ENV_CORE` is set for the whole job, so a Composer script that starts wp-env itself gets the same WordPress as the workflow's own start.
+The resulting `WP_ENV_CORE` is set for the whole job, so a Composer script that starts wp-env itself gets the same WordPress as the workflow's own start. The config file and Xdebug mode don't carry over, so such a script passes its own `--config` and `--xdebug`.
 
 ```yaml
 jobs:
   phpunit:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## Playwright E2E — `.github/workflows/reusable-playwright-e2e.yml`
 
-Installs PHP and Node.js dependencies, starts the project's `.wp-env.json` environment, runs `npm run test:e2e`, and uploads a failure report.
+Installs PHP and Node.js dependencies, starts the project's `.wp-env.json` environment, runs `npm run test:e2e`, and, for a suite that extends the shared Playwright base, uploads a failure report.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -121,14 +123,14 @@ Installs PHP and Node.js dependencies, starts the project's `.wp-env.json` envir
 | `wp-version` | `string` | No | `''` | WordPress release to run, as a `WordPress/WordPress` tag name. An empty value defers to the `core` setting in the project's `.wp-env.json`, or wp-env's default, the latest stable release. |
 | `wp-env-core` | `string` | No | `''` | Full `WP_ENV_CORE` value. Overrides `wp-version` and accepts repository refs or ZIP URLs. |
 
-The resulting `WP_ENV_CORE` is set for the whole job, as in the PHPUnit workflow. Composer dependencies are installed with development packages included. The workflow runs no build, so the suite exercises the build output committed at the tested commit. It installs and caches Chromium, stops wp-env under `always()`, and uploads the `playwright-report` artifact on failure.
+The resulting `WP_ENV_CORE` is set for the whole job, as in the PHPUnit workflow. Composer dependencies are installed with development packages included. The workflow runs no build, so the suite exercises the build output committed at the tested commit. It installs and caches Chromium and stops wp-env under `always()`. On failure it uploads the `playwright-report` artifact, which holds `tests/.cache/artifacts`, the output location `node/playwright.config.base.js` sets; a suite that does not extend that base writes its output elsewhere and produces no artifact.
 
 ```yaml
 jobs:
   playwright:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-playwright-e2e.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-playwright-e2e.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## Release — `.github/workflows/reusable-release.yml`
@@ -165,7 +167,7 @@ jobs:
     permissions:
       actions: read
       contents: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release.yml@<release-commit-sha> # vX.Y.Z
     with:
       plugin-slug: ${{ github.event.repository.name }}
       php-version: '8.5'
@@ -185,7 +187,7 @@ jobs:
   scripts-styles:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-scripts-styles-lint.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-scripts-styles-lint.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## Supply-Chain Audit — `.github/workflows/reusable-supply-chain-audit.yml`
@@ -204,12 +206,12 @@ jobs:
   supply-chain:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-supply-chain-audit.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-supply-chain-audit.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## Workflow Checks — `.github/workflows/reusable-workflow-checks.yml`
 
-Runs Actionlint and Zizmor static analysis against `.github/workflows/**`.
+Runs actionlint over `.github/workflows/**`, and zizmor static analysis over the `zizmor-inputs` path, where it audits workflows, composite actions and Dependabot config.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -226,5 +228,5 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-workflow-checks.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-workflow-checks.yml@<release-commit-sha> # vX.Y.Z
 ```

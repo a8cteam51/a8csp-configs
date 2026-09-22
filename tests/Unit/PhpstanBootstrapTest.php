@@ -63,6 +63,7 @@ final class PhpstanBootstrapTest extends TestCase {
 	public function detects_conventional_root_files(): void {
 		\file_put_contents( $this->project_dir . '/functions-bootstrap.php', "<?php\n" );
 		\file_put_contents( $this->project_dir . '/functions.php', "<?php\n" );
+		\file_put_contents( $this->project_dir . '/uninstall.php', "<?php\n" );
 
 		$config = require self::CONFIG_FILE;
 
@@ -70,6 +71,7 @@ final class PhpstanBootstrapTest extends TestCase {
 			array(
 				$this->project_dir . '/functions-bootstrap.php',
 				$this->project_dir . '/functions.php',
+				$this->project_dir . '/uninstall.php',
 			),
 			$config['parameters']['paths']
 		);

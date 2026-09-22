@@ -8,10 +8,13 @@ import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-// eslint-disable-next-line import/no-extraneous-dependencies -- provided transitively by @wordpress/scripts; used here only to load-smoke the shared ESLint baseline.
-import { ESLint } from 'eslint';
 
 const require = createRequire( import.meta.url );
+// Consumers lint through `wp-scripts lint-js`, which runs the ESLint @wordpress/scripts depends on; a
+// bare `eslint` import resolves the older copy npm hoists for the ESLint plugins' peer ranges.
+const { ESLint } = createRequire(
+	require.resolve( '@wordpress/scripts/package.json' )
+)( 'eslint' );
 const probes = [];
 
 probes.push( [
@@ -44,6 +47,38 @@ probes.push( [
 			await eslint.lintText( 'const probe = 42;\n', {
 				filePath: resolve( probePath ),
 			} );
+		}
+
+		// The test-unit glob is extension-scoped, so every script extension the base lints must
+		// still get the Jest rules, while a Jest snapshot or a JSON fixture must not be linted at all.
+		for ( const extension of [
+			'js',
+			'jsx',
+			'ts',
+			'tsx',
+			'mjs',
+			'cjs',
+			'mts',
+			'cts',
+		] ) {
+			const config = await eslint.calculateConfigForFile(
+				resolve(
+					`tests/fixtures/node-config/probe.test.${ extension }`
+				)
+			);
+			if ( ! config?.rules?.[ 'jest/expect-expect' ] ) {
+				throw new Error(
+					`probe.test.${ extension } does not get the test-unit rules`
+				);
+			}
+		}
+		for ( const name of [ 'probe.test.js.snap', 'probe.test.json' ] ) {
+			const config = await eslint.calculateConfigForFile(
+				resolve( `tests/fixtures/node-config/${ name }` )
+			);
+			if ( undefined !== config ) {
+				throw new Error( `${ name } is linted as a script` );
+			}
 		}
 	},
 ] );

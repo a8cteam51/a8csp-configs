@@ -22,6 +22,12 @@ Update the existing `repositories` VCS entry, or add one, to point at `https://g
   "require-dev": {
     "a8csp/configs": "vX.Y.Z",
     "roave/security-advisories": "dev-latest"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "phpstan/extension-installer": true
+    }
   }
 }
 ```
@@ -46,6 +52,8 @@ The shared ruleset runs PHPCompatibilityWP, and this package accepts either the 
 
 Without these root-side requirements, Composer resolves the stable releases, whose sniffs do not cover current PHP syntax — `testVersion`-based checks then pass vacuously.
 
+Keep both `allow-plugins` entries, which a project that required `a8cteam51/team51-configs` usually has already: Composer honors them only in the root package and aborts a non-interactive install on any plugin they do not allow, and these two plugins register the PHPCS standards the shared rulesets name and load the PHPStan extensions, including the WordPress stubs.
+
 ## Ruleset paths
 
 Point the consumer's PHPCS ruleset at:
@@ -64,10 +72,12 @@ Point the consumer's PHPStan configuration at:
 
 ```neon
 includes:
-    - vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
+    - %currentWorkingDirectory%/vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
 ```
 
 These are the canonical ruleset paths in this package. It has no legacy `quality-assurance/` shim path, unlike `a8cteam51/team51-configs`.
+
+The `%currentWorkingDirectory%` anchor keeps the include valid from a config in a subdirectory, such as a site repository's per-theme `.phpstan.neon`: PHPStan resolves a bare relative include against the including file's directory, and the shared config expects PHPStan to run from the repository root.
 
 ## PHPStan entry file
 
@@ -89,16 +99,16 @@ A consumer that is not ready for either floor opts out per repository as [CONTRI
 
 ## PHPMD
 
-PHPMD is not part of this package. A consumer that still uses PHPMD must keep requiring `a8cteam51/team51-configs` or vendor `phpmd/phpmd` directly for that dependency. This package ships no PHPMD ruleset.
+PHPMD is not part of this package, which ships no PHPMD ruleset. A consumer that still uses PHPMD requires `phpmd/phpmd` directly, copies `quality-assurance/phpmd.dist.xml` from `a8cteam51/team51-configs` into its own repository, and points the `<rule ref>` in its `.phpmd.xml` at that copy. It cannot keep requiring `a8cteam51/team51-configs` for the ruleset: that package and this one require different majors of `johnbillion/wp-compat`, so Composer cannot install both.
 
 ## Reusable workflows
 
 Migrating to `a8csp-configs` adds access to reusable workflows, which `team51-configs` did not provide. Add a `uses:` reference to the consumer's own workflow files for each reusable workflow it needs:
 
 ```yaml
-uses: a8cteam51/a8csp-configs/.github/workflows/<workflow-file>.yml@vX.Y.Z
+uses: a8cteam51/a8csp-configs/.github/workflows/<workflow-file>.yml@<release-commit-sha> # vX.Y.Z
 ```
 
-Do not reference `trunk` from a production consumer.
+Do not reference `trunk` from a production consumer. Pin each call by the release's full commit SHA, with the tag as a comment, as [the workflow reference](workflows.md) explains.
 
 See [docs/workflows.md](workflows.md) for the full per-workflow reference.
