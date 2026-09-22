@@ -8,10 +8,13 @@ import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-// eslint-disable-next-line import/no-extraneous-dependencies -- provided transitively by @wordpress/scripts; used here only to load-smoke the shared ESLint baseline.
-import { ESLint } from 'eslint';
 
 const require = createRequire( import.meta.url );
+// Consumers lint through `wp-scripts lint-js`, which runs the ESLint @wordpress/scripts depends on; a
+// bare `eslint` import resolves the older copy npm hoists for the ESLint plugins' peer ranges.
+const { ESLint } = createRequire(
+	require.resolve( '@wordpress/scripts/package.json' )
+)( 'eslint' );
 const probes = [];
 
 probes.push( [
