@@ -89,7 +89,7 @@ A consumer that is not ready for either floor opts out per repository as [CONTRI
 
 ## PHPMD
 
-PHPMD is not part of this package. A consumer that still uses PHPMD must keep requiring `a8cteam51/team51-configs` or vendor `phpmd/phpmd` directly for that dependency. This package ships no PHPMD ruleset.
+PHPMD is not part of this package, which ships no PHPMD ruleset. A consumer that still uses PHPMD requires `phpmd/phpmd` directly, copies `quality-assurance/phpmd.dist.xml` from `a8cteam51/team51-configs` into its own repository, and points the `<rule ref>` in its `.phpmd.xml` at that copy. It cannot keep requiring `a8cteam51/team51-configs` for the ruleset: that package and this one require different majors of `johnbillion/wp-compat`, so Composer cannot install both.
 
 ## Reusable workflows
 
