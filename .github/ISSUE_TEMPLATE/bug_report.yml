@@ -21,7 +21,7 @@ body:
     attributes:
       label: Steps to reproduce
       placeholder: |
-        1. Pin a8csp-configs at <tag or SHA> in a consuming repo.
+        1. Pin a8csp-configs at release vX.Y.Z in a consuming repo.
         2. Run the failing script or workflow.
         3. ...
 
@@ -47,7 +47,7 @@ body:
       label: Environment
       description: The versions the bug occurred on, plus anything unusual about the consuming repo.
       placeholder: |
-        - a8csp-configs version (tag or SHA):
+        - a8csp-configs release (vX.Y.Z):
         - Consuming repo:
         - PHP version:
         - Node version:
