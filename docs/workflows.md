@@ -121,7 +121,7 @@ Installs PHP and Node.js dependencies, starts the project's `.wp-env.json` envir
 | `wp-version` | `string` | No | `''` | WordPress release to run, as a `WordPress/WordPress` tag name. An empty value defers to the `core` setting in the project's `.wp-env.json`, or wp-env's default, the latest stable release. |
 | `wp-env-core` | `string` | No | `''` | Full `WP_ENV_CORE` value. Overrides `wp-version` and accepts repository refs or ZIP URLs. |
 
-The resulting `WP_ENV_CORE` is set for the whole job, as in the PHPUnit workflow. Composer dependencies are installed with development packages included. The workflow runs no build, so the suite exercises the build output committed at the tested commit. It installs and caches Chromium, stops wp-env under `always()`, and uploads the `playwright-report` artifact on failure.
+The resulting `WP_ENV_CORE` is set for the whole job, as in the PHPUnit workflow. Composer dependencies are installed with development packages included. The workflow runs no build, so the suite exercises the build output committed at the tested commit. It installs and caches Chromium and stops wp-env under `always()`. On failure it uploads the `playwright-report` artifact, which holds `tests/.cache/artifacts`, the output location `node/playwright.config.base.js` sets; a suite that does not extend that base writes its output elsewhere and produces no artifact.
 
 ```yaml
 jobs:
