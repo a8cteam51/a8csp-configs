@@ -72,10 +72,12 @@ Point the consumer's PHPStan configuration at:
 
 ```neon
 includes:
-    - vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
+    - %currentWorkingDirectory%/vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
 ```
 
 These are the canonical ruleset paths in this package. It has no legacy `quality-assurance/` shim path, unlike `a8cteam51/team51-configs`.
+
+The `%currentWorkingDirectory%` anchor keeps the include valid from a config in a subdirectory, such as a site repository's per-theme `.phpstan.neon`: PHPStan resolves a bare relative include against the including file's directory, and the shared config expects PHPStan to run from the repository root.
 
 ## PHPStan entry file
 

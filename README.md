@@ -58,8 +58,10 @@ Include the shared PHPStan config from the consumer's `.phpstan.neon`:
 
 ```neon
 includes:
-    - vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
+    - %currentWorkingDirectory%/vendor/a8csp/configs/php/quality-assurance/phpstan.dist.neon
 ```
+
+The `%currentWorkingDirectory%` anchor keeps the include valid from a config in a subdirectory, such as a site repository's per-theme `.phpstan.neon`: PHPStan resolves a bare relative include against the including file's directory, and the shared config expects PHPStan to run from the repository root.
 
 The shared PHPStan config includes `phpstan.dist.neon.php` automatically. The consumer declares `parameters.paths` for its plugin entry file (and any source directory outside the conventional set) and `WPCompat.pluginFile` — or `requiresAtLeast` — explicitly in its own config; this package contributes the analysis rules, WordPress stubs (through its phpstan-wordpress dependency), scoped-dependency scanning, and detection of conventional root files and source directories.
 
