@@ -2,6 +2,8 @@
 
 This document is the per-workflow `workflow_call` input reference for the reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#backwards-compatibility-contract) keep existing inputs stable until a major release, except that a [tool runtime move](../CONTRIBUTING.md#tool-runtimes) may raise a version input's default in a minor release; additional inputs must be optional and define a default.
 
+Every example pins its call by the full commit SHA of a release, with the release tag as a comment: zizmor, which Workflow Checks runs, rejects any `uses:` reference that is not pinned to a commit SHA. `gh api repos/a8cteam51/a8csp-configs/commits/vX.Y.Z --jq .sha` prints a release's commit SHA.
+
 ## block.json Schema Check — `.github/workflows/reusable-block-json-check.yml`
 
 Finds `block.json` files under the project path and validates each one against the `block.json` schema that `schemas.wp.org` publishes for this package's [WordPress floor](../README.md#supported-floors).
@@ -17,7 +19,7 @@ jobs:
   block-json:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-block-json-check.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-block-json-check.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## CodeQL — `.github/workflows/reusable-codeql.yml`
@@ -39,7 +41,7 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-codeql.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-codeql.yml@<release-commit-sha> # vX.Y.Z
     with:
       languages: '["actions", "javascript-typescript"]'
 ```
@@ -60,7 +62,7 @@ jobs:
   php-lint:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-lint.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-lint.yml@<release-commit-sha> # vX.Y.Z
     with:
       scripts: '["lint:php:phpcs", "lint:php:phpcs:tests", "lint:php:phpstan"]'
 ```
@@ -81,7 +83,7 @@ jobs:
   php-syntax:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-syntax-check.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-php-syntax-check.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## PHPUnit — `.github/workflows/reusable-phpunit.yml`
@@ -108,7 +110,7 @@ jobs:
   phpunit:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## Playwright E2E — `.github/workflows/reusable-playwright-e2e.yml`
@@ -128,7 +130,7 @@ jobs:
   playwright:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-playwright-e2e.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-playwright-e2e.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## Release — `.github/workflows/reusable-release.yml`
@@ -165,7 +167,7 @@ jobs:
     permissions:
       actions: read
       contents: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-release.yml@<release-commit-sha> # vX.Y.Z
     with:
       plugin-slug: ${{ github.event.repository.name }}
       php-version: '8.5'
@@ -185,7 +187,7 @@ jobs:
   scripts-styles:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-scripts-styles-lint.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-scripts-styles-lint.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## Supply-Chain Audit — `.github/workflows/reusable-supply-chain-audit.yml`
@@ -204,7 +206,7 @@ jobs:
   supply-chain:
     permissions:
       contents: read
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-supply-chain-audit.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-supply-chain-audit.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## Workflow Checks — `.github/workflows/reusable-workflow-checks.yml`
@@ -226,20 +228,5 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-workflow-checks.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-workflow-checks.yml@<release-commit-sha> # vX.Y.Z
 ```
-
-### Pinning to a tag
-
-zizmor's default `unpinned-uses` policy requires a full commit SHA on every `uses:` reference, reusable-workflow calls included, so each call to this repository pinned to a `vX.Y.Z` tag, as the examples in this reference are, fails the check. A caller that pins these workflows to tags adds a `.github/zizmor.yml` that allows ref pins for this repository and keeps hash pins everywhere else:
-
-```yaml
-rules:
-  unpinned-uses:
-    config:
-      policies:
-        a8cteam51/a8csp-configs/*: ref-pin
-        "*": hash-pin
-```
-
-A caller that pins these workflows by full commit SHA instead needs no policy.

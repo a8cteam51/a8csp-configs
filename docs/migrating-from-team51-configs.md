@@ -106,9 +106,9 @@ PHPMD is not part of this package, which ships no PHPMD ruleset. A consumer that
 Migrating to `a8csp-configs` adds access to reusable workflows, which `team51-configs` did not provide. Add a `uses:` reference to the consumer's own workflow files for each reusable workflow it needs:
 
 ```yaml
-uses: a8cteam51/a8csp-configs/.github/workflows/<workflow-file>.yml@vX.Y.Z
+uses: a8cteam51/a8csp-configs/.github/workflows/<workflow-file>.yml@<release-commit-sha> # vX.Y.Z
 ```
 
-Do not reference `trunk` from a production consumer. The zizmor check in Workflow Checks rejects a tag-pinned `uses:` by default, so a consumer that pins to tags adds the policy that [Pinning to a tag](workflows.md#pinning-to-a-tag) shows, or pins by full commit SHA.
+Do not reference `trunk` from a production consumer. Pin each call by the release's full commit SHA, with the tag as a comment, as [the workflow reference](workflows.md) explains.
 
 See [docs/workflows.md](workflows.md) for the full per-workflow reference.

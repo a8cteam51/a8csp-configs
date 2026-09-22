@@ -67,12 +67,12 @@ The shared PHPStan config includes `phpstan.dist.neon.php` automatically. The co
 
 ## `node/` configs
 
-Install the package as an npm Git dependency. Use a release tag for normal consumption or a full commit SHA when testing an exact revision:
+Install the package as an npm Git dependency pinned to a release tag:
 
 ```json
 {
   "devDependencies": {
-    "@a8csp/configs": "github:a8cteam51/a8csp-configs#<tag-or-sha>"
+    "@a8csp/configs": "github:a8cteam51/a8csp-configs#vX.Y.Z"
   }
 }
 ```
@@ -93,12 +93,12 @@ Import or require the JavaScript configs by their export paths, and use the Type
 
 The reusable workflows cover block metadata validation, CodeQL, PHP lint scripts, PHP syntax, PHPUnit, Playwright end-to-end tests, plugin releases, script and style linting, supply-chain audits, and workflow checks. The release workflow is plugin-only. See [the reusable-workflow reference](docs/workflows.md) for every input and behavior note. See [the scripts contract](docs/scripts-contract.md) for the composer/npm script names these workflows expect a consumer to define.
 
-A caller references a workflow from its own workflow file and pins the reference to a tag:
+A caller references a workflow from its own workflow file and pins the reference to a release's full commit SHA, with the tag as a comment:
 
 ```yaml
 jobs:
   phpunit:
-    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@vX.Y.Z
+    uses: a8cteam51/a8csp-configs/.github/workflows/reusable-phpunit.yml@<release-commit-sha> # vX.Y.Z
 ```
 
 ## Supported floors
@@ -108,7 +108,7 @@ jobs:
 
 ## Versioning
 
-Consumers should pin Composer requirements and reusable-workflow `uses:` references to immutable semver tags in `vX.Y.Z` form. `trunk` is the development branch and may break between tags. A full commit SHA is also an acceptable immutable pin for a reusable-workflow `uses:` reference. The zizmor check in Workflow Checks rejects a tag-pinned `uses:` by default, so a consumer that pins to tags adds the policy that [Pinning to a tag](docs/workflows.md#pinning-to-a-tag) shows.
+Consumers pin the Composer requirement and the npm dependency to an immutable release tag in `vX.Y.Z` form, and each reusable-workflow `uses:` reference to that release's full commit SHA with the tag as a comment, the only pin the zizmor check in Workflow Checks accepts; [the workflow reference](docs/workflows.md) shows how to look the SHA up. `trunk` is the development branch and may break between tags.
 
 Only the latest major version receives fixes; see [supported versions](CONTRIBUTING.md#supported-versions).
 
