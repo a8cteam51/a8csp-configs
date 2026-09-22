@@ -32,8 +32,6 @@ Update the existing `repositories` VCS entry, or add one, to point at `https://g
 }
 ```
 
-Use the tag selected for the migration rather than `trunk`.
-
 Composer honors stability flags only in the root package, and two root requirements follow from that.
 
 The `roave/security-advisories` line above is mandatory. This package requires `roave/security-advisories` so that no consumer can install a dependency version with a known security advisory, and because that package has no stable release, Composer refuses to install `a8csp/configs` without the root line under the default `minimum-stability` of `stable`.
