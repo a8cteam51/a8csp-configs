@@ -35,7 +35,7 @@ Moving a tool runtime forward is the other sanctioned exception. The reusable wo
 
 ## npm peer dependencies
 
-The `node/` configs import the packages listed under `peerDependencies`, and a consumer's `@wordpress/scripts` brings its own copies of them. Declare each peer as a minimum (`>=`), never a caret range: a caret range caps the major, so a consumer on the next `@wordpress/scripts` major installs a second, older copy just for this package, and the shared configs silently load the older rules. Raise a floor only to a version this repository's own `devDependencies` install and test.
+The `node/` configs load the packages listed under `peerDependencies`, directly or through `@wordpress/scripts`. A consumer's `@wordpress/scripts` brings its own copies of the ESLint, stylelint and PostCSS peers (`@wordpress/eslint-plugin`, `@wordpress/stylelint-config` and `@wordpress/postcss-plugins-preset`), while `@playwright/test` is the consumer's own dependency: `@wordpress/scripts` declares it only as an optional peer, so this package's peer is what installs it for a consumer that does not declare it. Declare each peer as a minimum (`>=`), never a caret range: a caret range caps the major, so a consumer on the next `@wordpress/scripts` major installs a second, older copy just for this package, and the shared configs silently load the older rules. Raise a floor only to a version this repository's own `devDependencies` install and test.
 
 ## CI gates
 
