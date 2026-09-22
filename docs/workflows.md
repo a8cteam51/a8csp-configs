@@ -6,7 +6,7 @@ Every example pins its call by the full commit SHA of a release, with the releas
 
 ## block.json Schema Check — `.github/workflows/reusable-block-json-check.yml`
 
-Finds `block.json` files under the project path and validates each one against the trunk `block.json` schema from `schemas.wp.org`, the one block.json files reference.
+Finds `block.json` files under the project path and validates each one against the trunk `block.json` schema from `schemas.wp.org`.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
@@ -103,7 +103,7 @@ Installs Composer dependencies, optionally starts a WordPress environment, runs 
 
 When `needs-wp-env` is `true`, the project must contain `package.json` and `package-lock.json` declaring `@wordpress/env`: the workflow starts the project's own locked wp-env and fails with a named error when it is missing. `wp-env-core` takes precedence over `wp-version`, and the stop step runs under `always()`.
 
-The resulting `WP_ENV_CORE` is set for the whole job, so a Composer script that starts wp-env itself gets the same WordPress as the workflow's own start. It is the only one of the workflow's settings that a restarted or re-invoked wp-env inherits: wp-env reads no environment variable for its config file or Xdebug mode, so a Composer script that calls wp-env must pass the same `--config <file>` on every call, and the same `--xdebug=<mode>` whenever it restarts wp-env. A call without `--config` addresses a different environment that was never started, and a restart without `--xdebug` rebuilds the containers without Xdebug.
+The resulting `WP_ENV_CORE` is set for the whole job, so a Composer script that starts wp-env itself gets the same WordPress as the workflow's own start. The config file and Xdebug mode don't carry over, so such a script passes its own `--config` and `--xdebug`.
 
 ```yaml
 jobs:

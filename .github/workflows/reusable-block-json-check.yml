@@ -37,7 +37,6 @@ jobs:
             echo "No block.json files found — nothing to validate."
             exit 0
           fi
-          # The trunk schema, the one block.json files reference in "$schema", so the check agrees with what editors validate against.
           # ajv-cli reads -s from disk and picks its parser from the extension, so fetch to a .json path; curl -f fails this check on a schemas.wp.org outage.
           schema="$(mktemp -d)/schema.json"
           curl -fsSL https://schemas.wp.org/trunk/block.json -o "$schema"

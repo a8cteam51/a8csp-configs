@@ -29,12 +29,12 @@ on:
         required: false
         default: 'test'
       wp-env-config-file:
-        description: 'Path to a wp-env config file (relative to project-path). Leave empty to use the default .wp-env.json. Only the workflow''s own wp-env calls use it: WP_ENV_CORE is the only workflow setting a restarted or re-invoked wp-env inherits, so a Composer script that calls wp-env must pass the same --config on every call.'
+        description: 'Path to a wp-env config file (relative to project-path). Leave empty to use the default .wp-env.json.'
         type: string
         required: false
         default: ''
       wp-env-xdebug:
-        description: 'Value for wp-env start --xdebug=<mode>; e.g. ''coverage'' for in-container coverage drivers. Leave empty to start without Xdebug. Only the workflow''s own start uses it: WP_ENV_CORE is the only workflow setting a restarted or re-invoked wp-env inherits, so a Composer script that restarts wp-env must pass the same --xdebug.'
+        description: 'Value for wp-env start --xdebug=<mode>; e.g. ''coverage'' for in-container coverage drivers. Leave empty to start without Xdebug.'
         type: string
         required: false
         default: ''
