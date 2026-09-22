@@ -55,7 +55,7 @@
 		<exclude-pattern>(?-i)*/patterns/*</exclude-pattern>
 	</rule>
 
-	<!-- Ignore missing tags if @inheritDoc is present. -->
+	<!-- Ignore missing tags if the docblock's first line is exactly {@inheritDoc}. -->
 	<rule ref="Squiz.Commenting.FunctionComment">
 		<properties>
 			<property name="skipIfInheritdoc" value="true" />
