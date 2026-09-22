@@ -37,10 +37,10 @@ jobs:
             echo "No block.json files found — nothing to validate."
             exit 0
           fi
-          # The schema of the WordPress floor this package enforces, so a block.json key newer than that floor fails; the version moves with minimum_wp_version in php/quality-assurance/phpcs.base.dist.xml.
+          # The trunk schema, the one block.json files reference in "$schema", so the check agrees with what editors validate against.
           # ajv-cli reads -s from disk and picks its parser from the extension, so fetch to a .json path; curl -f fails this check on a schemas.wp.org outage.
           schema="$(mktemp -d)/schema.json"
-          curl -fsSL https://schemas.wp.org/wp/7.1/block.json -o "$schema"
+          curl -fsSL https://schemas.wp.org/trunk/block.json -o "$schema"
           for file in "${files[@]}"; do
             echo "Validating $file"
             npx --yes ajv-cli@5.0.0 validate \

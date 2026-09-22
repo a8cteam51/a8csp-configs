@@ -6,7 +6,7 @@ Every example pins its call by the full commit SHA of a release, with the releas
 
 ## block.json Schema Check — `.github/workflows/reusable-block-json-check.yml`
 
-Finds `block.json` files under the project path and validates each one against the `block.json` schema that `schemas.wp.org` publishes for this package's [WordPress floor](../README.md#supported-floors).
+Finds `block.json` files under the project path and validates each one against the trunk `block.json` schema from `schemas.wp.org`, the one block.json files reference.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
