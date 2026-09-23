@@ -168,6 +168,11 @@ jobs:
         working-directory: tests/fixtures/plugin-stub
         run: ../../../vendor/bin/phpstan analyse -c ../../../php/quality-assurance/phpstan.dist.neon --no-progress
 
+      # The tracked vendor/ holds an error, and the tracked code uses a class from it and from a scanDirectories vendor/, so this fails if nested vendor/ is analysed or dropped from the scan.
+      - name: Analyze a tracked plugin with a committed vendor/ directory
+        working-directory: tests/fixtures/phpstan-nested-vendor
+        run: ../../../vendor/bin/phpstan analyse -c phpstan.neon --no-progress
+
   lint-config:
     name: Node lint and config smokes
     runs-on: ubuntu-latest

@@ -11,7 +11,7 @@ The PHP quality-assurance configs live in `php/quality-assurance/`:
 | `phpcs.dist.xml` | Production profile: the shared base plus the `tests/` exclusion and production-only settings. |
 | `phpcs.tests.dist.xml` | Companion ruleset for `tests/`: the shared base plus test-only relaxations, referenced by a consumer's own tests-only ruleset the same way `phpcs.dist.xml` is referenced by its main ruleset. |
 | `phpcs.base.dist.xml` | The rules both profiles include: PHPCompatibilityWP, WordPress-Extra, and WordPress-Docs, the supported-version floors, scan exclusions, and project-wide PHPCS settings. Consumers reference the two profiles, not this file. |
-| `phpstan.dist.neon` | Defines the PHPStan level, shared type aliases, and strict-rule settings. The WordPress stubs load through the phpstan-wordpress extension. |
+| `phpstan.dist.neon` | Defines the PHPStan level, shared type aliases, and strict-rule settings, and excludes nested `vendor/` directories from analysis while still scanning them. The WordPress stubs load through the phpstan-wordpress extension. |
 | `phpstan.dist.neon.php` | Adds the conventional root files (`functions-bootstrap.php`, `functions.php`, `uninstall.php`) and source directories to the analyzed paths when they exist, and adds scoped dependencies for scanning. It does not add the plugin entry file. |
 
 The package is not published on Packagist; it resolves from its GitHub repository through the `repositories` entry.
@@ -82,7 +82,7 @@ The `package.json` exports map exposes these paths:
 | Export path | File | Purpose |
 | --- | --- | --- |
 | `@a8csp/configs/node/eslint.config.base.mjs` | `node/eslint.config.base.mjs` | Flat ESLint baseline using the WordPress recommended, unit-test, and Playwright configurations. |
-| `@a8csp/configs/node/stylelint.config.base.js` | `node/stylelint.config.base.js` | Stylelint baseline extending the WordPress SCSS config, defining shared ignored files, and reporting needless, invalid-scope, and descriptionless disable comments. |
+| `@a8csp/configs/node/stylelint.config.base.js` | `node/stylelint.config.base.js` | Stylelint baseline extending the WordPress SCSS config without its class-name pattern, defining shared ignored files, and reporting needless, invalid-scope, and descriptionless disable comments. |
 | `@a8csp/configs/node/postcss.config.base.js` | `node/postcss.config.base.js` | PostCSS baseline wiring the WordPress plugin preset for compiled-CSS post-processing. |
 | `@a8csp/configs/node/playwright.config.base.js` | `node/playwright.config.base.js` | Playwright baseline factory. Called with `{ port }` — the port the consumer's `.wp-env.json` serves on — it returns the WordPress Scripts config with `tests/EndToEnd` as the test directory, the wp-env base URL and artifacts path set, and `npm run wp-env:start` as the web-server command. |
 | `@a8csp/configs/node/tsconfig.base.json` | `node/tsconfig.base.json` | TypeScript baseline for JSX, isolated modules, JSON modules, control-flow checks, and no-emit type checking. |

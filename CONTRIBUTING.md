@@ -47,7 +47,7 @@ Before merging a change under `php/quality-assurance/`, run the changed configur
 
 ## Versioning
 
-This package uses real semantic-version Git tags in the form `vX.Y.Z`. A maintainer creates a tag manually from `trunk` after a meaningful merge. Tags are never automated or force-moved, and a tag is not required for every commit.
+This package uses real semantic-version Git tags in the form `vX.Y.Z`. A maintainer creates a tag manually from `trunk` after a meaningful merge. Before each tag, a release-prep pull request runs `npm version X.Y.Z --no-git-tag-version`, so the tagged commit's `package.json` and `package-lock.json` carry the release version: a consumer's npm lock records that version, and Dependabot reads it to tell a minor or patch from a major. Tags are never automated or force-moved, and a tag is not required for every commit.
 
 - **PATCH**: bug fixes and non-behavioral or documentation fixes.
 - **MINOR**: additive or permissive changes, including a new optional input, a new ruleset or file, a new opt-in rule, or a loosened rule; and a tool-runtime move that both reference consumers pass.

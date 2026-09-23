@@ -13,4 +13,7 @@ module.exports = {
 	reportDescriptionlessDisables: true,
 	reportInvalidScopeDisables: true,
 	reportNeedlessDisables: true,
+	rules: {
+		'selector-class-pattern': null,
+	},
 };

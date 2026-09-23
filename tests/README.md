@@ -20,7 +20,8 @@ a WordPress runtime.
   fixture scans prove both PHPCS profiles parse and resolve; a scan at the shared floors and one
   with both lowered through `--runtime-set` prove a consumer can keep its own PHP and WordPress
   floors; a scan of a mixed file tree proves the exclude-patterns skip only generated and
-  third-party files; a fixture analysis proves `phpstan.dist.neon` runs; `npm run lint:config`
+  third-party files; a fixture analysis proves `phpstan.dist.neon` runs, and one of a tracked
+  plugin proves nested `vendor/` directories are scanned but not analysed; `npm run lint:config`
   load-smokes the Node baselines against the installed toolchain, beside the repository's own
   `lint:scripts`; the block.json workflow runs against a schema-valid fixture.
 
@@ -37,8 +38,10 @@ and CodeQL), so a change to one of them first runs for real in a consumer's CI.
 standards-compliant plugin for the PHPCS and PHPStan smokes), `php-compat/` (deprecated constructs
 the PHPCompatibility check must flag), `floor-opt-out/` (one construct per floor whose report
 changes when a consumer lowers that floor), `phpcs-exclusions/` (hand-written files the shared
-exclude-patterns must scan, beside generated and third-party ones they must skip), `node-config/`
-(the `smoke.mjs` harness and its probe inputs), and `block-json/` (a schema-valid block).
+exclude-patterns must scan, beside generated and third-party ones they must skip),
+`phpstan-nested-vendor/` (a site tracking a plugin with its committed `vendor/`, beside an installed
+plugin it only scans), `node-config/` (the `smoke.mjs` harness and its probe inputs), and
+`block-json/` (a schema-valid block).
 
 `wp-env-consumer/` is a working project rather than an input, with its own `composer.json`,
 `package.json` and lockfile, because the workflow under test installs and runs a consumer's
