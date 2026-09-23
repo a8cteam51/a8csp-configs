@@ -14,7 +14,6 @@ module.exports = {
 	reportInvalidScopeDisables: true,
 	reportNeedlessDisables: true,
 	rules: {
-		// Core, WooCommerce and prefixed post-type body classes are not the developer's to rename.
 		'selector-class-pattern': null,
 	},
 };
