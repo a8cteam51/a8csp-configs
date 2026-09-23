@@ -1,0 +1,11 @@
+includes:
+    - ../../../php/quality-assurance/phpstan.dist.neon
+
+# A site tracking a plugin with its committed vendor/, and scanning an installed plugin, per the site template's recipes.
+parameters:
+    paths:
+        - %currentWorkingDirectory%/plugins/tracked
+    scanDirectories:
+        - %currentWorkingDirectory%/plugins/off-the-shelf
+    WPCompat:
+        pluginFile: %currentWorkingDirectory%/plugins/tracked/tracked.php

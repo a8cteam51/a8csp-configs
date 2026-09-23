@@ -11,7 +11,7 @@ The PHP quality-assurance configs live in `php/quality-assurance/`:
 | `phpcs.dist.xml` | Production profile: the shared base plus the `tests/` exclusion and production-only settings. |
 | `phpcs.tests.dist.xml` | Companion ruleset for `tests/`: the shared base plus test-only relaxations, referenced by a consumer's own tests-only ruleset the same way `phpcs.dist.xml` is referenced by its main ruleset. |
 | `phpcs.base.dist.xml` | The rules both profiles include: PHPCompatibilityWP, WordPress-Extra, and WordPress-Docs, the supported-version floors, scan exclusions, and project-wide PHPCS settings. Consumers reference the two profiles, not this file. |
-| `phpstan.dist.neon` | Defines the PHPStan level, shared type aliases, and strict-rule settings. The WordPress stubs load through the phpstan-wordpress extension. |
+| `phpstan.dist.neon` | Defines the PHPStan level, shared type aliases, and strict-rule settings, and excludes nested `vendor/` directories from analysis while still scanning them. The WordPress stubs load through the phpstan-wordpress extension. |
 | `phpstan.dist.neon.php` | Adds the conventional root files (`functions-bootstrap.php`, `functions.php`, `uninstall.php`) and source directories to the analyzed paths when they exist, and adds scoped dependencies for scanning. It does not add the plugin entry file. |
 
 The package is not published on Packagist; it resolves from its GitHub repository through the `repositories` entry.
