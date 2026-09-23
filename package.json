@@ -1,6 +1,6 @@
 {
   "name": "@a8csp/configs",
-  "version": "0.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Shared baseline configurations for Node-ecosystem tooling in A8C Special Projects repositories.",
   "license": "MIT",
