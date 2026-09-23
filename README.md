@@ -82,7 +82,7 @@ The `package.json` exports map exposes these paths:
 | Export path | File | Purpose |
 | --- | --- | --- |
 | `@a8csp/configs/node/eslint.config.base.mjs` | `node/eslint.config.base.mjs` | Flat ESLint baseline using the WordPress recommended, unit-test, and Playwright configurations. |
-| `@a8csp/configs/node/stylelint.config.base.js` | `node/stylelint.config.base.js` | Stylelint baseline extending the WordPress SCSS config, defining shared ignored files, and reporting needless, invalid-scope, and descriptionless disable comments. |
+| `@a8csp/configs/node/stylelint.config.base.js` | `node/stylelint.config.base.js` | Stylelint baseline extending the WordPress SCSS config without its class-name pattern, defining shared ignored files, and reporting needless, invalid-scope, and descriptionless disable comments. |
 | `@a8csp/configs/node/postcss.config.base.js` | `node/postcss.config.base.js` | PostCSS baseline wiring the WordPress plugin preset for compiled-CSS post-processing. |
 | `@a8csp/configs/node/playwright.config.base.js` | `node/playwright.config.base.js` | Playwright baseline factory. Called with `{ port }` — the port the consumer's `.wp-env.json` serves on — it returns the WordPress Scripts config with `tests/EndToEnd` as the test directory, the wp-env base URL and artifacts path set, and `npm run wp-env:start` as the web-server command. |
 | `@a8csp/configs/node/tsconfig.base.json` | `node/tsconfig.base.json` | TypeScript baseline for JSX, isolated modules, JSON modules, control-flow checks, and no-emit type checking. |
