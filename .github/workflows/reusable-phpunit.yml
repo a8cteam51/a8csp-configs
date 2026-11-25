@@ -70,6 +70,7 @@ jobs:
           tools: composer:v2
 
       - name: Setup Node.js (for wp-env)
+        id: node
         if: ${{ inputs.needs-wp-env }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -83,11 +84,32 @@ jobs:
           working-directory: ${{ inputs.project-path }}
           composer-options: '--prefer-dist --ignore-platform-req=php+'
 
+      # npm ci spends minutes laying out the tree even from a warm npm cache, so the installed tree is
+      # cached whole, keyed by the exact Node.js version and lockfile.
+      - name: Restore node_modules
+        id: node-modules
+        if: ${{ inputs.needs-wp-env }}
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ inputs.project-path }}/node_modules
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-node-${{ steps.node.outputs.node-version }}-${{ hashFiles(format('{0}/package-lock.json', inputs.project-path)) }}
+
       - name: Install npm dependencies
+        if: ${{ inputs.needs-wp-env && steps.node-modules.outputs.cache-hit != 'true' }}
+        working-directory: ${{ inputs.project-path }}
+        run: npm ci
+
+      - name: Save node_modules
+        if: ${{ inputs.needs-wp-env && steps.node-modules.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ inputs.project-path }}/node_modules
+          key: ${{ steps.node-modules.outputs.cache-primary-key }}
+
+      - name: Check that the lockfile pins wp-env
         if: ${{ inputs.needs-wp-env }}
         working-directory: ${{ inputs.project-path }}
         run: |
-          npm ci
           if [ ! -x ./node_modules/.bin/wp-env ]; then
             echo "::error::@wordpress/env is not installed in this project — add it to devDependencies. This workflow runs the version the project's lockfile pins."
             exit 1

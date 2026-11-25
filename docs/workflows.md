@@ -2,6 +2,8 @@
 
 This document is the per-workflow `workflow_call` input reference for the reusable workflows in this repository. The [backwards-compatibility rules](../CONTRIBUTING.md#backwards-compatibility-contract) keep existing inputs stable until a major release, except that a [tool runtime move](../CONTRIBUTING.md#tool-runtimes) may raise a version input's default in a minor release; additional inputs must be optional and define a default.
 
+The PHPUnit, Playwright E2E and Scripts/Styles Lint workflows cache the installed `node_modules`, keyed by the runner, the exact Node.js version and the project's `package-lock.json`, because `npm ci` spends minutes laying out the tree even from a warm npm cache. `npm ci` runs only when no cache entry matches, so the project's own root `preinstall`, `install`, `postinstall` and `prepare` scripts don't run on a cache hit.
+
 Every example pins its call by the full commit SHA of a release, with the release tag as a comment: zizmor, which Workflow Checks runs, rejects any `uses:` reference that is not pinned to a commit SHA. `gh api repos/a8cteam51/a8csp-configs/commits/vX.Y.Z --jq .sha` prints a release's commit SHA.
 
 ## block.json Schema Check — `.github/workflows/reusable-block-json-check.yml`
