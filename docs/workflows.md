@@ -55,7 +55,7 @@ Validates `composer.json` and its lock, installs Composer dependencies, and runs
 | `scripts` | `string` | Yes | — | Non-empty JSON array of Composer scripts; they run in order, and each runs even after another fails. |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
 
-An empty `scripts` array, an empty script name, or a name containing a newline fails validation. Each script runs as `composer "$SCRIPT"` on PHP 8.5, in its own log group, and the job fails after the last one if any failed. One job rather than one per script, because GitHub bills each job by the minute, rounded up. `composer validate --strict` always runs first: it fails when `composer.lock` is out of date with `composer.json` or `composer validate` reports any warning, which the dependency install only warns about. The scripts still run after it fails.
+An empty `scripts` array, an empty script name, or a name containing a control character fails validation. Each script runs as `composer "$SCRIPT"` on PHP 8.5, in its own log group, and the job fails after the last one if any failed. One job rather than one per script, because GitHub bills each job by the minute, rounded up. `composer validate --strict` always runs first: it fails when `composer.lock` is out of date with `composer.json` or `composer validate` reports any warning, which the dependency install only warns about. The scripts still run after it fails.
 
 ```yaml
 jobs:

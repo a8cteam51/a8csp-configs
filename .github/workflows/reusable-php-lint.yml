@@ -25,14 +25,15 @@ jobs:
     permissions:
       contents: read
     steps:
-      # An empty array, or an empty name (`composer ""` prints its help and exits 0), would lint nothing
-      # and pass; a name with a newline would run as two scripts, because the loop reads one per line.
+      # An empty array or an empty name lints nothing and passes: `composer ""` prints its help and exits
+      # 0. The loop reads one name per line and Bash drops NUL bytes, so a name with a control character
+      # can split in two or collapse to an empty name.
       - name: Reject an empty scripts array
         env:
           SCRIPTS: ${{ inputs.scripts }}
         run: |
-          if ! jq -e 'type == "array" and length > 0 and all(.[]; type == "string" and length > 0 and (contains("\n") | not))' <<< "$SCRIPTS" > /dev/null; then
-            echo "::error::scripts must be a non-empty JSON array of non-empty, single-line script names — got '$SCRIPTS'."
+          if ! jq -e 'type == "array" and length > 0 and all(.[]; type == "string" and length > 0 and (explode | all(. > 31)))' <<< "$SCRIPTS" > /dev/null; then
+            echo "::error::scripts must be a non-empty JSON array of non-empty script names without control characters — got '$SCRIPTS'."
             exit 1
           fi
 
