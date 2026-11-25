@@ -37,13 +37,23 @@ jobs:
           cache-dependency-path: ${{ inputs.project-path }}/package-lock.json
 
       # npm ci spends minutes laying out the tree even from a warm npm cache, so the installed tree is
-      # cached whole, keyed by the exact Node.js version and lockfile.
+      # cached whole, keyed by the exact Node.js version and the files that decide the tree. A root install
+      # lifecycle script or workspaces turn the cache off: a hit would skip the scripts, and the cache
+      # holds only the root node_modules.
+      - name: Check whether node_modules can be cached
+        id: cacheable
+        working-directory: ${{ inputs.project-path }}
+        run: |
+          cacheable=$(jq '((.scripts // {}) | keys | any(IN("preinstall", "install", "postinstall", "prepublish", "preprepare", "prepare", "postprepare"))) or has("workspaces") | not' package.json)
+          echo "cacheable=$cacheable" >> "$GITHUB_OUTPUT"
+
       - name: Restore node_modules
         id: node-modules
+        if: steps.cacheable.outputs.cacheable == 'true'
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ inputs.project-path }}/node_modules
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-node-${{ steps.node.outputs.node-version }}-${{ hashFiles(format('{0}/package-lock.json', inputs.project-path)) }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-node-${{ steps.node.outputs.node-version }}-${{ hashFiles(format('{0}/package-lock.json', inputs.project-path), format('{0}/package.json', inputs.project-path), format('{0}/.npmrc', inputs.project-path)) }}
 
       - name: Install npm dependencies
         if: steps.node-modules.outputs.cache-hit != 'true'
@@ -51,7 +61,7 @@ jobs:
         run: npm ci
 
       - name: Save node_modules
-        if: steps.node-modules.outputs.cache-hit != 'true'
+        if: steps.cacheable.outputs.cacheable == 'true' && steps.node-modules.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ inputs.project-path }}/node_modules
