@@ -48,14 +48,14 @@ jobs:
 
 ## PHP Lint — `.github/workflows/reusable-php-lint.yml`
 
-Validates `composer.json` and its lock, installs Composer dependencies, and runs each configured Composer script as a separate matrix job.
+Validates `composer.json` and its lock, installs Composer dependencies, and runs each configured Composer script in turn, all in one job.
 
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `scripts` | `string` | Yes | — | Non-empty JSON array of Composer scripts; each script runs as a parallel job. |
+| `scripts` | `string` | Yes | — | Non-empty JSON array of Composer scripts; they run in order, and each runs even after another fails. |
 | `project-path` | `string` | No | `'.'` | Path to the project, relative to the repository root. |
 
-An empty `scripts` array fails validation. Each matrix job invokes its script as `composer "$SCRIPT"` on PHP 8.5. `composer validate --strict` always runs as its own job: it fails when `composer.lock` is out of date with `composer.json` or `composer validate` reports any warning, which the dependency install only warns about.
+An empty `scripts` array, an empty script name, or a name containing a control character fails validation. Each script runs as `composer "$SCRIPT"` on PHP 8.5, in its own log group, and the job fails after the last one if any failed. One job rather than one per script, because GitHub bills each job by the minute, rounded up. `composer validate --strict` always runs first: it fails when `composer.lock` is out of date with `composer.json` or `composer validate` reports any warning, which the dependency install only warns about. The scripts still run after it fails.
 
 ```yaml
 jobs:

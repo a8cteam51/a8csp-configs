@@ -30,11 +30,11 @@ matching the default avoids an unnecessary `with:` entry.
 
 ## Convention (consumer-declared, not enforced by the workflow)
 
-`reusable-php-lint.yml` takes a required `scripts` array of composer script names and runs each as
-its own matrix job; the workflow itself names none of them. The established convention across
+`reusable-php-lint.yml` takes a required `scripts` array of composer script names and runs each in
+turn in one job; the workflow itself names none of them. The established convention across
 consumers is a `lint:php` composer script that aggregates `lint:php:phpcs`, `lint:php:phpcs:tests`,
 and `lint:php:phpstan`, passed as `'["lint:php:phpcs", "lint:php:phpcs:tests", "lint:php:phpstan"]'`.
-The `lint:php:phpcs:tests` job runs the companion tests-profile ruleset over `tests/`; a consumer
+The `lint:php:phpcs:tests` script runs the companion tests-profile ruleset over `tests/`; a consumer
 that omits it lints production code but leaves its test code unchecked.
 
 ## Conventional names (not read by any workflow)
