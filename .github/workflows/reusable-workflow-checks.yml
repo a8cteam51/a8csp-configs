@@ -100,7 +100,7 @@ jobs:
       - name: Run zizmor
         id: zizmor
         if: needs.detect-ghas.outputs.ghas-available == 'true'
-        uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
         with:
           inputs: ${{ inputs.zizmor-inputs }}
           version: ${{ env.ZIZMOR_VERSION }}
@@ -108,7 +108,7 @@ jobs:
       # Native mode: zizmor's own exit fails the job on any finding, annotated inline.
       - name: Run zizmor without Advanced Security
         if: needs.detect-ghas.outputs.ghas-available == 'false'
-        uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
         with:
           inputs: ${{ inputs.zizmor-inputs }}
           version: ${{ env.ZIZMOR_VERSION }}
