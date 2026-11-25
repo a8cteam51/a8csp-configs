@@ -27,13 +27,14 @@ jobs:
     steps:
       # An empty array or an empty name lints nothing and passes: `composer ""` prints its help and exits
       # 0. The loop reads one name per line and Bash drops NUL bytes, so a name with a control character
-      # can split in two or collapse to an empty name.
-      - name: Reject an empty scripts array
+      # can split in two or collapse to an empty name. jq reads every JSON document in its input, so the
+      # input must be exactly one.
+      - name: Validate the scripts input
         env:
           SCRIPTS: ${{ inputs.scripts }}
         run: |
-          if ! jq -e 'type == "array" and length > 0 and all(.[]; type == "string" and length > 0 and (explode | all(. > 31)))' <<< "$SCRIPTS" > /dev/null; then
-            echo "::error::scripts must be a non-empty JSON array of non-empty script names without control characters — got '$SCRIPTS'."
+          if ! jq -s -e 'length == 1 and (.[0] | type == "array" and length > 0 and all(.[]; type == "string" and length > 0 and (explode | all(. > 31 and (. < 127 or . > 159)))))' <<< "$SCRIPTS" > /dev/null; then
+            echo "::error::scripts must be a non-empty JSON array of non-empty script names without control characters, as one JSON document — got '$SCRIPTS'."
             exit 1
           fi
 
