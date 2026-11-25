@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       scripts:
-        description: 'Non-empty JSON array of composer scripts; each runs as its own parallel job.'
+        description: 'Non-empty JSON array of composer scripts; they run in order in one job, and each runs even after another fails.'
         type: string
         required: true
       project-path:
@@ -16,67 +16,69 @@ on:
 permissions: {}
 
 jobs:
-  validate-inputs:
-    name: Validate inputs
+  # One job, not one per script: GitHub bills every job by the minute, rounded up, and each script
+  # takes seconds once the dependencies are installed.
+  lint:
+    name: PHP Lint
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions: {}
+    permissions:
+      contents: read
     steps:
-      # An empty JSON array expands to zero matrix jobs and reports success — a silent skip of the lint.
+      # An empty array would lint nothing and pass.
       - name: Reject an empty scripts array
         env:
           SCRIPTS: ${{ inputs.scripts }}
         run: |
-          if ! jq -e 'type == "array" and length > 0' <<< "$SCRIPTS" > /dev/null; then
-            echo "::error::scripts must be a non-empty JSON array — got '$SCRIPTS'."
+          if ! jq -e 'type == "array" and length > 0 and all(.[]; type == "string")' <<< "$SCRIPTS" > /dev/null; then
+            echo "::error::scripts must be a non-empty JSON array of strings — got '$SCRIPTS'."
             exit 1
           fi
 
-  composer-validate:
-    name: composer validate
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
-    steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+
+      - id: setup
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
           coverage: none
           tools: composer:v2
+
+      # Fails when composer.lock is out of date with composer.json or validate reports any warning,
+      # which the dependency install only warns about.
       - name: composer validate --strict
         working-directory: ${{ inputs.project-path }}
         run: composer validate --strict
 
-  lint:
-    name: ${{ matrix.script }}
-    needs: validate-inputs
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        script: ${{ fromJSON(inputs.scripts) }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version: '8.5'
-          coverage: none
-          tools: composer:v2
-      - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+      # Runs after a failed validate too, so one push reports every problem.
+      - name: Install Composer dependencies
+        id: install
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
         with:
           working-directory: ${{ inputs.project-path }}
           composer-options: '--prefer-dist --ignore-platform-req=php+'
-      - name: composer ${{ matrix.script }}
+
+      - name: Run the lint scripts
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         working-directory: ${{ inputs.project-path }}
         env:
-          SCRIPT: ${{ matrix.script }}
-        run: composer "$SCRIPT"
+          SCRIPTS: ${{ inputs.scripts }}
+        run: |
+          set -uo pipefail
+
+          failed=()
+          while IFS= read -r script; do
+            echo "::group::composer $script"
+            if ! composer "$script"; then
+              failed+=("$script")
+            fi
+            echo '::endgroup::'
+          done < <(jq -r '.[]' <<< "$SCRIPTS")
+
+          if (( ${#failed[@]} > 0 )); then
+            echo "::error::failed composer scripts: ${failed[*]}"
+            exit 1
+          fi
