@@ -72,7 +72,8 @@ jobs:
           failed=()
           while IFS= read -r script; do
             echo "::group::composer $script"
-            if ! composer "$script"; then
+            # stdin feeds this loop, so a script must not be able to read the names after its own.
+            if ! composer "$script" < /dev/null; then
               failed+=("$script")
             fi
             echo '::endgroup::'
